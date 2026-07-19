@@ -84,3 +84,31 @@ npm run lint       # 린트
 - **Next.js 버전**: 현재 **15.3.9** 사용 중. Next.js 16은 Windows에서 Turbopack 실행 시 `0xc0000142` 에러로 크래시 → 다운그레이드 유지.
 - **middleware 파일명**: Next.js 15는 `middleware.ts` + `export function middleware`. (Next.js 16은 `proxy.ts`로 바뀌었으나 현재 15 사용 중)
 - **`reactCompiler: true`**: Next.js 15 config에서 유효하지 않은 옵션, 넣지 말 것.
+
+## Vercel 배포 관련
+
+- **Supabase redirect URL 설정 필수**: Vercel 배포 후 Supabase 대시보드 → Authentication → URL Configuration에서 Site URL과 Redirect URLs를 프로덕션 도메인으로 업데이트해야 함. 안 하면 매직링크 클릭 시 localhost로 리다이렉트됨.
+  - Site URL: `https://your-app.vercel.app`
+  - Redirect URLs: `https://your-app.vercel.app/**`
+
+- **환경변수는 Vercel에 별도 등록 필요**: `.env.local`은 로컬 전용. Vercel 배포 시 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`를 Vercel 대시보드 또는 `npx vercel env add`로 추가해야 함. 추가 후 재배포 필요.
+
+- **`git push` → 자동 재배포**: Vercel 프로젝트 연결 후 GitHub push 시 자동으로 재배포됨. 수동 배포 불필요.
+
+## Supabase 인증 관련
+
+- **매직링크 이메일 rate limit**: Supabase 무료 플랜은 OTP/매직링크 이메일 발송에 시간당 횟수 제한이 있음. 짧은 시간에 여러 번 요청하면 429 에러 발생. 비밀번호 로그인을 함께 지원하는 것이 좋음 (`signInWithPassword`). 현재 로그인 페이지는 비밀번호/매직링크 탭 전환 방식으로 구현되어 있음.
+
+## PWA / Service Worker 관련
+
+- **PWA 아이콘 파일 필수**: `public/icons/icon-192.png`, `public/icons/icon-512.png` 파일이 없으면 404 에러 발생. manifest.json에서 참조하는 아이콘 파일은 반드시 실제로 존재해야 함.
+
+- **Service Worker에서 chrome-extension URL 필터링**: `fetch` 이벤트 핸들러에서 `http`/`https`가 아닌 스킴(chrome-extension 등)을 캐싱하려 하면 TypeError 발생. fetch 핸들러 최상단에 `if (!event.request.url.startsWith('http')) return` 추가 필수.
+
+## UI / UX 패턴 관련
+
+- **바텀시트보다 전체화면 페이지가 UX상 낫다**: 입력 폼처럼 내용이 많은 경우 바텀시트 모달보다 전용 페이지(`/expenses/add`, `/recurring/apply` 등)로 분리하는 게 스크롤 처리나 뒤로가기 UX 면에서 훨씬 자연스러움.
+
+- **`useSearchParams`는 반드시 Suspense로 감싸야 함**: Next.js App Router에서 `useSearchParams()`를 사용하는 클라이언트 컴포넌트는 `<Suspense>`로 감싸지 않으면 빌드/런타임 에러 발생.
+
+- **브라우저 native alert/confirm 금지**: `alert()`, `confirm()`은 모바일 PWA에서 UX가 나쁨. `components/Dialog.tsx`의 `useConfirm` 훅을 사용할 것. Promise 기반으로 `await confirm('메시지')`처럼 사용 가능.
