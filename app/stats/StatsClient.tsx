@@ -11,13 +11,7 @@ type ViewMode = 'monthly' | 'yearly'
 type CategoryStat = { category: Category; total: number; count: number }
 type IncomeCategoryStat = { category: IncomeCategory; total: number; count: number }
 type PersonStat = { profile: Profile; expenseTotal: number; incomeTotal: number }
-
-type MonthRow = {
-  month: number
-  income: number
-  expense: number
-  balance: number
-}
+type MonthRow = { month: number; income: number; expense: number; balance: number }
 
 export default function StatsClient({ currentUserId }: Props) {
   const now = new Date()
@@ -25,21 +19,18 @@ export default function StatsClient({ currentUserId }: Props) {
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
 
-  // 월별 상태
   const [grandExpense, setGrandExpense] = useState(0)
   const [grandIncome, setGrandIncome] = useState(0)
   const [categoryStats, setCategoryStats] = useState<CategoryStat[]>([])
   const [incomeCategoryStats, setIncomeCategoryStats] = useState<IncomeCategoryStat[]>([])
   const [personStats, setPersonStats] = useState<PersonStat[]>([])
 
-  // 연별 상태
   const [monthRows, setMonthRows] = useState<MonthRow[]>([])
   const [yearlyIncome, setYearlyIncome] = useState(0)
   const [yearlyExpense, setYearlyExpense] = useState(0)
 
   const [loading, setLoading] = useState(true)
 
-  // ── 월별 통계 ──────────────────────────────────────────
   const fetchMonthly = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
@@ -60,7 +51,6 @@ export default function StatsClient({ currentUserId }: Props) {
     setGrandExpense(expenses.reduce((s, e) => s + e.amount, 0))
     setGrandIncome(incomes.reduce((s, e) => s + e.amount, 0))
 
-    // 지출 카테고리별
     const catMap = new Map<string, CategoryStat>()
     expenses.forEach((e) => {
       if (!e.categories) return
@@ -70,7 +60,6 @@ export default function StatsClient({ currentUserId }: Props) {
     })
     setCategoryStats(Array.from(catMap.values()).sort((a, b) => b.total - a.total))
 
-    // 소득 카테고리별
     const incCatMap = new Map<string, IncomeCategoryStat>()
     incomes.forEach((e) => {
       if (!e.income_categories || !e.category_id) return
@@ -80,7 +69,6 @@ export default function StatsClient({ currentUserId }: Props) {
     })
     setIncomeCategoryStats(Array.from(incCatMap.values()).sort((a, b) => b.total - a.total))
 
-    // 결제자/수취인별
     const personMap = new Map<string, PersonStat>()
     const ensurePerson = (id: string) => {
       if (!personMap.has(id)) {
@@ -96,7 +84,6 @@ export default function StatsClient({ currentUserId }: Props) {
     setLoading(false)
   }, [year, month])
 
-  // ── 연별 통계 ──────────────────────────────────────────
   const fetchYearly = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
@@ -134,65 +121,86 @@ export default function StatsClient({ currentUserId }: Props) {
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1
   const isCurrentYear = year === now.getFullYear()
 
+  const displayIncome = viewMode === 'monthly' ? grandIncome : yearlyIncome
+  const displayExpense = viewMode === 'monthly' ? grandExpense : yearlyExpense
+  const displayBalance = displayIncome - displayExpense
+
   return (
     <div className="flex flex-col h-full">
-      <header className="bg-white px-5 pt-12 pb-4 shadow-[0_1px_0_0_#F0F0F0]">
+      <header className="bg-white px-5 pt-12 pb-5 shadow-[0_1px_0_0_#F0F0F0]">
         <div className="max-w-lg mx-auto">
           {/* 월별 / 연별 탭 */}
-          <div className="flex bg-gray-100 rounded-xl p-1 mb-4">
+          <div className="flex bg-gray-100 rounded-xl p-1 mb-5">
+            {(['monthly', 'yearly'] as ViewMode[]).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  viewMode === mode ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                }`}
+              >
+                {mode === 'monthly' ? '월별' : '연별'}
+              </button>
+            ))}
+          </div>
+
+          {/* 기간 네비게이션 */}
+          <div className="flex items-center justify-between mb-4">
             <button
-              onClick={() => setViewMode('monthly')}
-              className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${viewMode === 'monthly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
+              onClick={() => {
+                if (viewMode === 'monthly') {
+                  if (month === 1) { setYear(y => y - 1); setMonth(12) } else setMonth(m => m - 1)
+                } else {
+                  setYear(y => y - 1)
+                }
+              }}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 text-xl"
             >
-              월별
+              ‹
             </button>
+            <span className="text-sm font-semibold text-gray-500">
+              {viewMode === 'monthly' ? `${year}년 ${month}월` : `${year}년`}
+            </span>
             <button
-              onClick={() => setViewMode('yearly')}
-              className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${viewMode === 'yearly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
+              onClick={() => {
+                if (viewMode === 'monthly') {
+                  const n = new Date(year, month)
+                  if (n > new Date()) return
+                  if (month === 12) { setYear(y => y + 1); setMonth(1) } else setMonth(m => m + 1)
+                } else {
+                  setYear(y => y + 1)
+                }
+              }}
+              disabled={viewMode === 'monthly' ? isCurrentMonth : isCurrentYear}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 text-xl disabled:opacity-30"
             >
-              연별
+              ›
             </button>
           </div>
 
-          {/* 네비게이션 */}
-          {viewMode === 'monthly' ? (
-            <div className="flex items-center justify-between mb-3">
-              <button onClick={() => { if (month === 1) { setYear(y => y-1); setMonth(12) } else setMonth(m => m-1) }}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-600">‹</button>
-              <span className="font-semibold text-gray-900">{year}년 {month}월</span>
-              <button onClick={() => { const n = new Date(year, month); if (n > new Date()) return; if (month===12){setYear(y=>y+1);setMonth(1)}else setMonth(m=>m+1) }}
-                disabled={isCurrentMonth}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-600 disabled:opacity-30">›</button>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between mb-3">
-              <button onClick={() => setYear(y => y-1)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-600">‹</button>
-              <span className="font-semibold text-gray-900">{year}년</span>
-              <button onClick={() => setYear(y => y+1)} disabled={isCurrentYear}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-600 disabled:opacity-30">›</button>
-            </div>
-          )}
+          {/* 잔액 요약 */}
+          <div className="mb-4">
+            <p className="text-xs text-gray-400 font-medium mb-1">
+              {viewMode === 'monthly' ? '이번 달 잔액' : `${year}년 잔액`}
+            </p>
+            <p className={`text-3xl font-bold tracking-tight ${displayBalance >= 0 ? 'text-gray-900' : 'text-red-500'}`}>
+              {displayBalance >= 0 ? '+' : ''}{displayBalance.toLocaleString('ko-KR')}
+              <span className="text-lg font-semibold ml-1">원</span>
+            </p>
+          </div>
 
-          {/* 요약 카드 */}
-          <div className="grid grid-cols-3 gap-2">
-            <div className="bg-green-50 rounded-xl px-3 py-2">
-              <p className="text-xs text-green-600 font-medium mb-0.5">소득</p>
-              <p className="text-sm font-bold text-green-700 truncate">
-                {(viewMode === 'monthly' ? grandIncome : yearlyIncome).toLocaleString('ko-KR')}원
-              </p>
+          {/* 소득 / 지출 인라인 */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-blue-400" />
+              <span className="text-xs text-gray-400">소득</span>
+              <span className="text-sm font-semibold text-gray-700">{displayIncome.toLocaleString('ko-KR')}원</span>
             </div>
-            <div className="bg-red-50 rounded-xl px-3 py-2">
-              <p className="text-xs text-red-500 font-medium mb-0.5">지출</p>
-              <p className="text-sm font-bold text-red-600 truncate">
-                {(viewMode === 'monthly' ? grandExpense : yearlyExpense).toLocaleString('ko-KR')}원
-              </p>
-            </div>
-            <div className={`rounded-xl px-3 py-2 ${(viewMode === 'monthly' ? grandIncome - grandExpense : yearlyIncome - yearlyExpense) >= 0 ? 'bg-gray-50' : 'bg-orange-50'}`}>
-              <p className="text-xs text-gray-500 font-medium mb-0.5">잔액</p>
-              <p className={`text-sm font-bold truncate ${(viewMode === 'monthly' ? grandIncome - grandExpense : yearlyIncome - yearlyExpense) >= 0 ? 'text-gray-900' : 'text-orange-600'}`}>
-                {(viewMode === 'monthly' ? grandIncome - grandExpense : yearlyIncome - yearlyExpense).toLocaleString('ko-KR')}원
-              </p>
+            <div className="w-px h-3 bg-gray-200" />
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-red-400" />
+              <span className="text-xs text-gray-400">지출</span>
+              <span className="text-sm font-semibold text-gray-700">{displayExpense.toLocaleString('ko-KR')}원</span>
             </div>
           </div>
         </div>
@@ -200,8 +208,8 @@ export default function StatsClient({ currentUserId }: Props) {
 
       <main className="flex-1 overflow-y-auto pb-24 px-4 pt-4 max-w-lg mx-auto w-full space-y-4">
         {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-700 rounded-full animate-spin" />
+          <div className="flex justify-center py-16">
+            <div className="w-6 h-6 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
           </div>
         ) : viewMode === 'monthly' ? (
           <MonthlyContent
@@ -227,7 +235,6 @@ export default function StatsClient({ currentUserId }: Props) {
   )
 }
 
-// ── 월별 콘텐츠 ────────────────────────────────────────────
 function MonthlyContent({
   grandExpense, grandIncome, categoryStats, incomeCategoryStats, personStats, currentUserId
 }: {
@@ -240,8 +247,8 @@ function MonthlyContent({
 }) {
   if (grandExpense === 0 && grandIncome === 0) {
     return (
-      <div className="text-center py-16 text-gray-400">
-        <div className="text-4xl mb-2">📊</div>
+      <div className="text-center py-20 text-gray-400">
+        <div className="text-4xl mb-3">📊</div>
         <p className="text-sm">이번 달 내역이 없어요</p>
       </div>
     )
@@ -252,25 +259,28 @@ function MonthlyContent({
       {/* 지출 카테고리별 */}
       {categoryStats.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">카테고리별 지출</h2>
-          <div className="space-y-3">
+          <h2 className="text-sm font-bold text-gray-800 mb-4">카테고리별 지출</h2>
+          <div className="space-y-4">
             {categoryStats.map(({ category, total, count }) => {
               const pct = grandExpense > 0 ? (total / grandExpense) * 100 : 0
               return (
                 <div key={category.id}>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
-                      <span>{category.icon}</span>
+                      <span className="text-base">{category.icon}</span>
                       <span className="text-sm text-gray-700">{category.name}</span>
                       <span className="text-xs text-gray-400">{count}건</span>
                     </div>
-                    <div className="text-right">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-gray-400">{pct.toFixed(0)}%</span>
                       <span className="text-sm font-semibold text-gray-900">{total.toLocaleString('ko-KR')}원</span>
-                      <span className="text-xs text-gray-400 ml-1.5">{pct.toFixed(0)}%</span>
                     </div>
                   </div>
                   <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: category.color }} />
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ width: `${pct}%`, backgroundColor: category.color }}
+                    />
                   </div>
                 </div>
               )
@@ -282,25 +292,28 @@ function MonthlyContent({
       {/* 소득 카테고리별 */}
       {incomeCategoryStats.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">소득원별 내역</h2>
-          <div className="space-y-3">
+          <h2 className="text-sm font-bold text-gray-800 mb-4">소득원별 내역</h2>
+          <div className="space-y-4">
             {incomeCategoryStats.map(({ category, total, count }) => {
               const pct = grandIncome > 0 ? (total / grandIncome) * 100 : 0
               return (
                 <div key={category.id}>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
-                      <span>{category.icon}</span>
+                      <span className="text-base">{category.icon}</span>
                       <span className="text-sm text-gray-700">{category.name}</span>
                       <span className="text-xs text-gray-400">{count}건</span>
                     </div>
-                    <div className="text-right">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-gray-400">{pct.toFixed(0)}%</span>
                       <span className="text-sm font-semibold text-green-700">{total.toLocaleString('ko-KR')}원</span>
-                      <span className="text-xs text-gray-400 ml-1.5">{pct.toFixed(0)}%</span>
                     </div>
                   </div>
                   <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: category.color }} />
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ width: `${pct}%`, backgroundColor: category.color }}
+                    />
                   </div>
                 </div>
               )
@@ -309,30 +322,30 @@ function MonthlyContent({
         </div>
       )}
 
-      {/* 결제자/수취인별 */}
+      {/* 인물별 */}
       {personStats.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">인물별 내역</h2>
-          <div className="space-y-4">
+          <h2 className="text-sm font-bold text-gray-800 mb-4">인물별 내역</h2>
+          <div className="space-y-3">
             {personStats.map(({ profile, expenseTotal, incomeTotal }) => {
               const isMe = profile.id === currentUserId
               return (
-                <div key={profile.id} className="space-y-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <span>{isMe ? '😊' : '💑'}</span>
-                    <span className="text-sm font-medium text-gray-800">{profile.display_name}</span>
-                    {isMe && <span className="text-xs text-gray-400">(나)</span>}
+                <div key={profile.id} className="flex items-center justify-between py-1">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${isMe ? 'bg-gray-100' : 'bg-blue-50'}`}>
+                      {isMe ? '😊' : '💑'}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{profile.display_name}</p>
+                      {isMe && <p className="text-xs text-gray-400">나</p>}
+                    </div>
                   </div>
-                  <div className="flex gap-2 text-xs">
+                  <div className="flex flex-col items-end gap-0.5">
                     {incomeTotal > 0 && (
-                      <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded-full">
-                        소득 +{incomeTotal.toLocaleString('ko-KR')}원
-                      </span>
+                      <span className="text-xs font-medium text-blue-500">+{incomeTotal.toLocaleString('ko-KR')}원</span>
                     )}
                     {expenseTotal > 0 && (
-                      <span className="bg-red-50 text-red-600 px-2 py-0.5 rounded-full">
-                        지출 -{expenseTotal.toLocaleString('ko-KR')}원
-                      </span>
+                      <span className="text-xs font-medium text-red-500">-{expenseTotal.toLocaleString('ko-KR')}원</span>
                     )}
                   </div>
                 </div>
@@ -345,7 +358,6 @@ function MonthlyContent({
   )
 }
 
-// ── 연별 콘텐츠 ────────────────────────────────────────────
 function YearlyContent({ monthRows, yearlyIncome, yearlyExpense, year }: {
   monthRows: MonthRow[]
   yearlyIncome: number
@@ -358,56 +370,90 @@ function YearlyContent({ monthRows, yearlyIncome, yearlyExpense, year }: {
 
   if (!hasData) {
     return (
-      <div className="text-center py-16 text-gray-400">
-        <div className="text-4xl mb-2">📅</div>
+      <div className="text-center py-20 text-gray-400">
+        <div className="text-4xl mb-3">📅</div>
         <p className="text-sm">{year}년 내역이 없어요</p>
       </div>
     )
   }
 
+  const maxExpense = Math.max(...monthRows.map((r) => r.expense))
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      {/* 헤더 */}
-      <div className="grid grid-cols-4 bg-gray-50 border-b border-gray-100 px-4 py-2.5">
-        <span className="text-xs font-medium text-gray-500">월</span>
-        <span className="text-xs font-medium text-green-600 text-right">소득</span>
-        <span className="text-xs font-medium text-red-500 text-right">지출</span>
-        <span className="text-xs font-medium text-gray-700 text-right">잔액</span>
+    <div className="space-y-4">
+      {/* 막대 차트 */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <h2 className="text-sm font-bold text-gray-800 mb-4">월별 지출 추이</h2>
+        <div className="flex items-end gap-1.5 h-24">
+          {monthRows.map((row) => {
+            const isFuture = year === nowYear && row.month > nowMonth
+            const heightPct = maxExpense > 0 ? (row.expense / maxExpense) * 100 : 0
+            const isCurrentM = year === nowYear && row.month === nowMonth
+            return (
+              <div key={row.month} className="flex-1 flex flex-col items-center gap-1">
+                <div className="w-full flex items-end" style={{ height: '80px' }}>
+                  <div
+                    className={`w-full rounded-t-md transition-all duration-500 ${
+                      isFuture ? 'bg-gray-100' : isCurrentM ? 'bg-blue-400' : 'bg-gray-300'
+                    }`}
+                    style={{ height: isFuture ? '4px' : `${Math.max(heightPct, row.expense > 0 ? 4 : 0)}%` }}
+                  />
+                </div>
+                <span className={`text-[10px] ${isCurrentM ? 'text-blue-500 font-semibold' : 'text-gray-400'}`}>
+                  {row.month}
+                </span>
+              </div>
+            )
+          })}
+        </div>
       </div>
 
-      {/* 월별 행 */}
-      {monthRows.map((row) => {
-        const isFuture = year === nowYear && row.month > nowMonth
-        const isEmpty = row.income === 0 && row.expense === 0
-        if (isFuture) return null
+      {/* 월별 테이블 */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="grid grid-cols-4 bg-gray-50 border-b border-gray-100 px-4 py-2.5">
+          <span className="text-xs font-medium text-gray-500">월</span>
+          <span className="text-xs font-medium text-blue-400 text-right">소득</span>
+          <span className="text-xs font-medium text-red-400 text-right">지출</span>
+          <span className="text-xs font-medium text-gray-600 text-right">잔액</span>
+        </div>
 
-        return (
-          <div
-            key={row.month}
-            className={`grid grid-cols-4 px-4 py-3 border-b border-gray-50 last:border-0 ${isEmpty ? 'opacity-40' : ''}`}
-          >
-            <span className="text-sm text-gray-600 font-medium">{row.month}월</span>
-            <span className="text-sm text-green-700 text-right">
-              {row.income > 0 ? row.income.toLocaleString('ko-KR') : '-'}
-            </span>
-            <span className="text-sm text-red-600 text-right">
-              {row.expense > 0 ? row.expense.toLocaleString('ko-KR') : '-'}
-            </span>
-            <span className={`text-sm font-semibold text-right ${row.balance > 0 ? 'text-gray-900' : row.balance < 0 ? 'text-orange-600' : 'text-gray-400'}`}>
-              {isEmpty ? '-' : row.balance.toLocaleString('ko-KR')}
-            </span>
-          </div>
-        )
-      })}
+        {monthRows.map((row) => {
+          const isFuture = year === nowYear && row.month > nowMonth
+          const isEmpty = row.income === 0 && row.expense === 0
+          const isCurrentM = year === nowYear && row.month === nowMonth
+          if (isFuture) return null
 
-      {/* 합계 행 */}
-      <div className="grid grid-cols-4 px-4 py-3 bg-gray-50 border-t border-gray-200">
-        <span className="text-sm font-bold text-gray-800">합계</span>
-        <span className="text-sm font-bold text-green-700 text-right">{yearlyIncome.toLocaleString('ko-KR')}</span>
-        <span className="text-sm font-bold text-red-600 text-right">{yearlyExpense.toLocaleString('ko-KR')}</span>
-        <span className={`text-sm font-bold text-right ${yearlyIncome - yearlyExpense >= 0 ? 'text-gray-900' : 'text-orange-600'}`}>
-          {(yearlyIncome - yearlyExpense).toLocaleString('ko-KR')}
-        </span>
+          return (
+            <div
+              key={row.month}
+              className={`grid grid-cols-4 px-4 py-3 border-b border-gray-50 last:border-0 ${isEmpty ? 'opacity-40' : ''} ${isCurrentM ? 'bg-blue-50/50' : ''}`}
+            >
+              <span className={`text-sm font-medium ${isCurrentM ? 'text-blue-500' : 'text-gray-600'}`}>
+                {row.month}월
+              </span>
+              <span className="text-sm text-gray-700 text-right">
+                {row.income > 0 ? row.income.toLocaleString('ko-KR') : '-'}
+              </span>
+              <span className="text-sm text-gray-700 text-right">
+                {row.expense > 0 ? row.expense.toLocaleString('ko-KR') : '-'}
+              </span>
+              <span className={`text-sm font-semibold text-right ${
+                isEmpty ? 'text-gray-400' : row.balance > 0 ? 'text-gray-900' : 'text-red-500'
+              }`}>
+                {isEmpty ? '-' : row.balance.toLocaleString('ko-KR')}
+              </span>
+            </div>
+          )
+        })}
+
+        <div className="grid grid-cols-4 px-4 py-3 bg-gray-50 border-t border-gray-200">
+          <span className="text-sm font-bold text-gray-800">합계</span>
+          <span className="text-sm font-bold text-gray-800 text-right">{yearlyIncome.toLocaleString('ko-KR')}</span>
+          <span className="text-sm font-bold text-gray-800 text-right">{yearlyExpense.toLocaleString('ko-KR')}</span>
+          <span className={`text-sm font-bold text-right ${yearlyIncome - yearlyExpense >= 0 ? 'text-gray-900' : 'text-red-500'}`}>
+            {(yearlyIncome - yearlyExpense).toLocaleString('ko-KR')}
+          </span>
+        </div>
       </div>
     </div>
   )
