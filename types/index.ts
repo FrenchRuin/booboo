@@ -30,6 +30,20 @@ export type Expense = {
   profiles?: Profile
 }
 
+export type RecurringExpense = {
+  id: string
+  title: string
+  amount: number
+  category_id: string | null
+  type: 'expense' | 'income'
+  period: 'monthly' | 'yearly'
+  apply_month: number | null
+  day_of_month: number
+  paid_by: string
+  is_active: boolean
+  created_at: string
+}
+
 export type Income = {
   id: string
   amount: number

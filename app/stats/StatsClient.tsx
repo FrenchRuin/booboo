@@ -136,7 +136,7 @@ export default function StatsClient({ currentUserId }: Props) {
 
   return (
     <div className="flex flex-col h-full">
-      <header className="bg-white border-b border-gray-100 px-5 pt-12 pb-4">
+      <header className="bg-white px-5 pt-12 pb-4 shadow-[0_1px_0_0_#F0F0F0]">
         <div className="max-w-lg mx-auto">
           {/* 월별 / 연별 탭 */}
           <div className="flex bg-gray-100 rounded-xl p-1 mb-4">

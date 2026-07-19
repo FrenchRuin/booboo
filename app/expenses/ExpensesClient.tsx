@@ -1,21 +1,20 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
 import ExpenseList from '@/components/ExpenseList'
-import ExpenseForm, { type EditTarget } from '@/components/ExpenseForm'
 
 type Props = {
   currentUserId: string
 }
 
 export default function ExpensesClient({ currentUserId }: Props) {
+  const router = useRouter()
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
-  const [showForm, setShowForm] = useState(false)
-  const [editTarget, setEditTarget] = useState<EditTarget | null>(null)
   const [summary, setSummary] = useState({ income: 0, expense: 0 })
   const [refreshKey, setRefreshKey] = useState(0)
 
@@ -56,52 +55,64 @@ export default function ExpensesClient({ currentUserId }: Props) {
 
   const handleSaved = () => setRefreshKey((k) => k + 1)
 
+
   return (
     <div className="flex flex-col h-full">
       {/* 헤더 */}
-      <header className="bg-white border-b border-gray-100 px-5 pt-12 pb-5">
+      <header className="bg-white px-5 pt-12 pb-5 shadow-[0_1px_0_0_#F0F0F0]">
         <div className="max-w-lg mx-auto">
           {/* 월 선택 */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-5">
             <button
               onClick={prevMonth}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-600"
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 text-xl"
             >
               ‹
             </button>
-            <span className="font-semibold text-gray-900">{year}년 {month}월</span>
+            <span className="text-sm font-semibold text-gray-500">{year}년 {month}월</span>
             <button
               onClick={nextMonth}
               disabled={isCurrentMonth}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-600 disabled:opacity-30"
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 text-xl disabled:opacity-30"
             >
               ›
             </button>
           </div>
 
-          {/* 소득 / 지출 / 잔액 */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-green-50 rounded-xl px-3 py-2.5">
-              <p className="text-xs text-green-600 font-medium mb-0.5">소득</p>
-              <p className="text-base font-bold text-green-700 truncate">
-                {summary.income.toLocaleString('ko-KR')}
-                <span className="text-xs font-normal ml-0.5">원</span>
-              </p>
+          {/* 잔액 강조 */}
+          <div className="mb-4">
+            <p className="text-xs text-gray-400 font-medium mb-1">이번 달 잔액</p>
+            <p className={`text-3xl font-bold tracking-tight ${balance >= 0 ? 'text-gray-900' : 'text-red-500'}`}>
+              {balance >= 0 ? '+' : ''}{balance.toLocaleString('ko-KR')}
+              <span className="text-lg font-semibold ml-1">원</span>
+            </p>
+          </div>
+
+          {/* 소득 / 지출 / 고정비 */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-blue-400" />
+                <span className="text-xs text-gray-400">소득</span>
+                <span className="text-sm font-semibold text-gray-700">
+                  {summary.income.toLocaleString('ko-KR')}원
+                </span>
+              </div>
+              <div className="w-px h-3 bg-gray-200" />
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-red-400" />
+                <span className="text-xs text-gray-400">지출</span>
+                <span className="text-sm font-semibold text-gray-700">
+                  {summary.expense.toLocaleString('ko-KR')}원
+                </span>
+              </div>
             </div>
-            <div className="bg-red-50 rounded-xl px-3 py-2.5">
-              <p className="text-xs text-red-500 font-medium mb-0.5">지출</p>
-              <p className="text-base font-bold text-red-600 truncate">
-                {summary.expense.toLocaleString('ko-KR')}
-                <span className="text-xs font-normal ml-0.5">원</span>
-              </p>
-            </div>
-            <div className={`rounded-xl px-3 py-2.5 ${balance >= 0 ? 'bg-gray-50' : 'bg-orange-50'}`}>
-              <p className="text-xs text-gray-500 font-medium mb-0.5">잔액</p>
-              <p className={`text-base font-bold truncate ${balance >= 0 ? 'text-gray-900' : 'text-orange-600'}`}>
-                {balance.toLocaleString('ko-KR')}
-                <span className="text-xs font-normal ml-0.5">원</span>
-              </p>
-            </div>
+            <button
+              onClick={() => router.push(`/recurring/apply?year=${year}&month=${month}`)}
+              className="flex items-center gap-1 text-xs text-blue-500 font-medium px-2.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors"
+            >
+              🔁 고정비
+            </button>
           </div>
         </div>
       </header>
@@ -114,29 +125,10 @@ export default function ExpensesClient({ currentUserId }: Props) {
           year={year}
           month={month}
           onDeleted={handleSaved}
-          onEdit={(target) => { setEditTarget(target); setShowForm(true) }}
         />
       </main>
 
-      {/* + 버튼 */}
-      <button
-        onClick={() => { setEditTarget(null); setShowForm(true) }}
-        className="fixed bottom-20 right-5 w-14 h-14 bg-gray-900 text-white text-2xl rounded-full shadow-lg flex items-center justify-center hover:bg-gray-700 transition-colors active:scale-95"
-        aria-label="내역 추가"
-      >
-        +
-      </button>
-
       <BottomNav />
-
-      {showForm && (
-        <ExpenseForm
-          currentUserId={currentUserId}
-          initialData={editTarget ?? undefined}
-          onClose={() => { setShowForm(false); setEditTarget(null) }}
-          onSaved={handleSaved}
-        />
-      )}
     </div>
   )
 }

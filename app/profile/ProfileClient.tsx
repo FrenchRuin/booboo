@@ -120,7 +120,7 @@ export default function ProfileClient({ userId, email }: Props) {
 
   return (
     <div className="flex flex-col h-full">
-      <header className="bg-white border-b border-gray-100 px-5 pt-12 pb-5">
+      <header className="bg-white px-5 pt-12 pb-5 shadow-[0_1px_0_0_#F0F0F0]">
         <div className="max-w-lg mx-auto">
           <h1 className="text-lg font-bold text-gray-900">프로필</h1>
         </div>

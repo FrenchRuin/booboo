@@ -1,0 +1,280 @@
+'use client'
+
+import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { createClient } from '@/lib/supabase'
+import BottomNav from '@/components/BottomNav'
+import type { Category, IncomeCategory, Profile } from '@/types'
+
+type EntryType = 'expense' | 'income'
+
+type Props = {
+  currentUserId: string
+}
+
+function AddExpenseForm({ currentUserId }: Props) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const editId = searchParams.get('id')
+  const editType = (searchParams.get('type') as EntryType) ?? 'expense'
+  const isEdit = !!editId
+
+  const [entryType, setEntryType] = useState<EntryType>(editType)
+  const [amount, setAmount] = useState('')
+  const [categoryId, setCategoryId] = useState<string | null>(null)
+  const [note, setNote] = useState('')
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [personId, setPersonId] = useState(currentUserId)
+
+  const [categories, setCategories] = useState<Category[]>([])
+  const [incomeCategories, setIncomeCategories] = useState<IncomeCategory[]>([])
+  const [profiles, setProfiles] = useState<Profile[]>([])
+  const [loading, setLoading] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(isEdit)
+  const [error, setError] = useState<string | null>(null)
+
+  // 카테고리/프로필 로드
+  useEffect(() => {
+    const supabase = createClient()
+    Promise.all([
+      supabase.from('categories').select('*').order('sort_order'),
+      supabase.from('income_categories').select('*').order('sort_order'),
+      supabase.from('profiles').select('*'),
+    ]).then(([catRes, incCatRes, profileRes]) => {
+      if (catRes.data) setCategories(catRes.data)
+      if (incCatRes.data) setIncomeCategories(incCatRes.data)
+      if (profileRes.data) setProfiles(profileRes.data)
+    })
+  }, [])
+
+  // 수정 모드: 기존 데이터 로드
+  const fetchEdit = useCallback(async () => {
+    if (!editId) return
+    const supabase = createClient()
+    const table = editType === 'expense' ? 'expenses' : 'incomes'
+    const { data } = await supabase.from(table).select('*').eq('id', editId).single()
+    if (data) {
+      setAmount(data.amount.toLocaleString('ko-KR'))
+      setCategoryId(data.category_id ?? null)
+      setNote(data.note ?? '')
+      setDate(data.date)
+      setPersonId(editType === 'expense' ? data.paid_by : data.received_by)
+    }
+    setInitialLoading(false)
+  }, [editId, editType])
+
+  useEffect(() => { fetchEdit() }, [fetchEdit])
+
+  const formatAmount = (val: string) => {
+    const num = val.replace(/[^0-9]/g, '')
+    return num ? parseInt(num, 10).toLocaleString('ko-KR') : ''
+  }
+
+  const handleTypeChange = (type: EntryType) => {
+    if (isEdit) return
+    setEntryType(type)
+    setCategoryId(null)
+    setPersonId(currentUserId)
+  }
+
+  const handleSubmit = async () => {
+    if (!categoryId) { setError('카테고리를 선택해주세요.'); return }
+    const parsedAmount = parseInt(amount.replace(/,/g, ''), 10)
+    if (!parsedAmount || parsedAmount <= 0) { setError('올바른 금액을 입력해주세요.'); return }
+
+    setLoading(true)
+    setError(null)
+    const supabase = createClient()
+
+    const base = { amount: parsedAmount, category_id: categoryId, note: note.trim() || null, date }
+    let err
+
+    if (entryType === 'expense') {
+      const payload = { ...base, paid_by: personId }
+      ;({ error: err } = isEdit
+        ? await supabase.from('expenses').update(payload).eq('id', editId!)
+        : await supabase.from('expenses').insert(payload))
+    } else {
+      const payload = { ...base, received_by: personId }
+      ;({ error: err } = isEdit
+        ? await supabase.from('incomes').update(payload).eq('id', editId!)
+        : await supabase.from('incomes').insert(payload))
+    }
+
+    if (err) {
+      setError('저장에 실패했어요. 다시 시도해주세요.')
+      setLoading(false)
+    } else {
+      router.push('/expenses')
+    }
+  }
+
+  const me = profiles.find((p) => p.id === currentUserId)
+  const partner = profiles.find((p) => p.id !== currentUserId)
+  const currentCategories = entryType === 'expense' ? categories : incomeCategories
+  const personLabel = entryType === 'expense' ? '결제자' : '수취인'
+
+  return (
+    <div className="flex flex-col h-full">
+      <header className="bg-white px-5 pt-12 pb-4 shadow-[0_1px_0_0_#F0F0F0]">
+        <div className="max-w-lg mx-auto flex items-center gap-3">
+          <button
+            onClick={() => router.back()}
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 text-xl"
+          >
+            ‹
+          </button>
+          <h1 className="text-lg font-bold text-gray-900">
+            {isEdit ? '내역 수정' : '내역 추가'}
+          </h1>
+        </div>
+      </header>
+
+      <main className="flex-1 overflow-y-auto pb-32 px-4 pt-5 max-w-lg mx-auto w-full">
+        {initialLoading ? (
+          <div className="flex justify-center py-16">
+            <div className="w-6 h-6 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* 지출 / 소득 탭 */}
+            <div className={`flex bg-gray-100 rounded-xl p-1 ${isEdit ? 'opacity-60 pointer-events-none' : ''}`}>
+              <button
+                type="button"
+                onClick={() => handleTypeChange('expense')}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  entryType === 'expense' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                }`}
+              >
+                💳 지출
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTypeChange('income')}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  entryType === 'income' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                }`}
+              >
+                💰 소득
+              </button>
+            </div>
+
+            {/* 금액 */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <label className="text-xs font-medium text-gray-500 mb-1.5 block">금액</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={amount}
+                  onChange={(e) => setAmount(formatAmount(e.target.value))}
+                  placeholder="0"
+                  className="w-full text-2xl font-bold px-4 py-3 pr-12 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 bg-gray-50"
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">원</span>
+              </div>
+            </div>
+
+            {/* 카테고리 */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <label className="text-xs font-medium text-gray-500 mb-2 block">카테고리</label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {currentCategories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setCategoryId(cat.id)}
+                    className={`flex flex-col items-center py-2 px-1 rounded-xl border transition-colors ${
+                      categoryId === cat.id ? 'border-blue-400 bg-blue-50' : 'border-gray-100 bg-gray-50'
+                    }`}
+                  >
+                    <span className="text-xl">{cat.icon}</span>
+                    <span className="text-xs text-gray-600 mt-0.5 leading-tight text-center">{cat.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 결제자 / 수취인 */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <label className="text-xs font-medium text-gray-500 mb-2 block">{personLabel}</label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPersonId(currentUserId)}
+                  className={`flex-1 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
+                    personId === currentUserId ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-600 bg-white'
+                  }`}
+                >
+                  {me?.display_name ?? '나'}
+                </button>
+                {partner && (
+                  <button
+                    type="button"
+                    onClick={() => setPersonId(partner.id)}
+                    className={`flex-1 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
+                      personId === partner.id ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-600 bg-white'
+                    }`}
+                  >
+                    {partner.display_name}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* 날짜 */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <label className="text-xs font-medium text-gray-500 mb-1.5 block">날짜</label>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 bg-gray-50"
+              />
+            </div>
+
+            {/* 메모 */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+              <label className="text-xs font-medium text-gray-500 mb-1.5 block">메모 (선택)</label>
+              <input
+                type="text"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder={entryType === 'expense' ? '어디서 뭘 샀는지...' : '어디서 받은 소득인지...'}
+                maxLength={100}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 placeholder-gray-400 bg-gray-50"
+              />
+            </div>
+
+            {error && <p className="text-sm text-red-500 px-1">{error}</p>}
+
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className={`w-full py-4 rounded-2xl font-semibold text-base transition-colors disabled:opacity-50 text-white ${
+                entryType === 'expense' ? 'bg-gray-900 hover:bg-gray-700' : 'bg-green-600 hover:bg-green-700'
+              }`}
+            >
+              {loading ? '저장 중...' : isEdit ? '수정 완료' : entryType === 'expense' ? '지출 저장' : '소득 저장'}
+            </button>
+          </div>
+        )}
+      </main>
+
+      <BottomNav />
+    </div>
+  )
+}
+
+export default function AddExpenseClient(props: Props) {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-full">
+        <div className="w-6 h-6 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
+      </div>
+    }>
+      <AddExpenseForm {...props} />
+    </Suspense>
+  )
+}

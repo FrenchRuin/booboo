@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import CategoryBadge from '@/components/CategoryBadge'
 import type { Expense, Income, Profile } from '@/types'
-import type { EditTarget } from '@/components/ExpenseForm'
 
 type EntryType = 'expense' | 'income'
 type TypeFilter = 'all' | 'expense' | 'income'
@@ -15,10 +15,10 @@ type Props = {
   year: number
   month: number
   onDeleted?: () => void
-  onEdit?: (target: EditTarget) => void
 }
 
-export default function ExpenseList({ currentUserId, year, month, onDeleted, onEdit }: Props) {
+export default function ExpenseList({ currentUserId, year, month, onDeleted }: Props) {
+  const router = useRouter()
   const [entries, setEntries] = useState<Entry[]>([])
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
@@ -230,15 +230,7 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted, onE
                   const expenseCategory = !isIncome ? (entry as Expense).categories : null
 
                   const handleRowClick = () => {
-                    onEdit?.({
-                      id: entry.id,
-                      type: entry._type,
-                      amount: entry.amount,
-                      categoryId: entry.category_id ?? null,
-                      note: entry.note ?? null,
-                      personId: isIncome ? (entry as Income).received_by : (entry as Expense).paid_by,
-                      date: entry.date,
-                    })
+                    router.push(`/expenses/add?id=${entry.id}&type=${entry._type}`)
                   }
 
                   return (
