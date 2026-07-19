@@ -112,7 +112,9 @@ function AddExpenseForm({ currentUserId }: Props) {
 
   const me = profiles.find((p) => p.id === currentUserId)
   const partner = profiles.find((p) => p.id !== currentUserId)
-  const currentCategories = entryType === 'expense' ? categories : incomeCategories
+  const currentCategories = (entryType === 'expense' ? categories : incomeCategories).filter(
+    (c) => c.is_active || c.id === categoryId
+  )
   const personLabel = entryType === 'expense' ? '결제자' : '수취인'
 
   return (
@@ -179,20 +181,25 @@ function AddExpenseForm({ currentUserId }: Props) {
             {/* 카테고리 */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
               <label className="text-xs font-medium text-gray-500 mb-2 block">카테고리</label>
-              <div className="grid grid-cols-4 gap-1.5">
-                {currentCategories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setCategoryId(cat.id)}
-                    className={`flex flex-col items-center py-2 px-1 rounded-xl border transition-colors ${
-                      categoryId === cat.id ? 'border-blue-400 bg-blue-50' : 'border-gray-100 bg-gray-50'
-                    }`}
-                  >
-                    <span className="text-xl">{cat.icon}</span>
-                    <span className="text-xs text-gray-600 mt-0.5 leading-tight text-center">{cat.name}</span>
-                  </button>
-                ))}
+              <div className="flex flex-wrap gap-2">
+                {currentCategories.map((cat) => {
+                  const selected = categoryId === cat.id
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setCategoryId(cat.id)}
+                      style={{
+                        backgroundColor: cat.color + (selected ? '33' : '18'),
+                        color: cat.color,
+                        borderColor: selected ? cat.color : 'transparent',
+                      }}
+                      className="px-3 py-1.5 rounded-full border-2 text-sm font-medium transition-colors"
+                    >
+                      {cat.name}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 

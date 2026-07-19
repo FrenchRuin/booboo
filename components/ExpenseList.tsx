@@ -95,14 +95,14 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
   // 타입 필터 적용 후 카테고리 칩 목록 도출 (현재 달에 실제 존재하는 카테고리만)
   const categoryChips = useMemo(() => {
     const filtered = typeFilter === 'all' ? entries : entries.filter((e) => e._type === typeFilter)
-    const seen = new Map<string, { id: string; name: string; icon: string }>()
+    const seen = new Map<string, { id: string; name: string }>()
     for (const e of filtered) {
       if (e._type === 'expense') {
         const cat = (e as Expense).categories
-        if (cat && !seen.has(cat.id)) seen.set(cat.id, { id: cat.id, name: cat.name, icon: cat.icon })
+        if (cat && !seen.has(cat.id)) seen.set(cat.id, { id: cat.id, name: cat.name })
       } else {
         const cat = (e as Income).income_categories
-        if (cat && !seen.has(cat.id)) seen.set(cat.id, { id: cat.id, name: cat.name, icon: cat.icon })
+        if (cat && !seen.has(cat.id)) seen.set(cat.id, { id: cat.id, name: cat.name })
       }
     }
     return Array.from(seen.values())
@@ -178,14 +178,13 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
             <button
               key={cat.id}
               onClick={() => setCategoryFilter(categoryFilter === cat.id ? null : cat.id)}
-              className={`flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                 categoryFilter === cat.id
                   ? 'bg-gray-900 text-white'
                   : 'bg-white border border-gray-200 text-gray-600'
               }`}
             >
-              <span>{cat.icon}</span>
-              <span>{cat.name}</span>
+              {cat.name}
             </button>
           ))}
         </div>
@@ -223,15 +222,9 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
                   const isMine = personId === currentUserId
                   const personName = profiles.find((p) => p.id === personId)?.display_name ?? (isMine ? '나' : '파트너')
 
-                  const categoryName = isIncome
-                    ? (entry as Income).income_categories?.name ?? '기타'
-                    : (entry as Expense).categories?.name ?? '기타'
-
-                  const categoryIcon = isIncome
-                    ? (entry as Income).income_categories?.icon ?? '📦'
-                    : null
-
-                  const expenseCategory = !isIncome ? (entry as Expense).categories : null
+                  const category = isIncome
+                    ? (entry as Income).income_categories
+                    : (entry as Expense).categories
 
                   const handleRowClick = () => {
                     router.push(`/expenses/add?id=${entry.id}&type=${entry._type}`)
@@ -243,17 +236,13 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
                       onClick={handleRowClick}
                       className={`flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-gray-50 ${idx !== items.length - 1 ? 'border-b border-gray-50' : ''} ${deletingId === entry.id ? 'opacity-50' : ''}`}
                     >
-                      {expenseCategory ? (
-                        <CategoryBadge category={expenseCategory} size="sm" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0 text-base">
-                          {categoryIcon}
-                        </div>
-                      )}
-
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-sm font-medium text-gray-800 truncate">{categoryName}</span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {category ? (
+                            <CategoryBadge category={category} size="sm" />
+                          ) : (
+                            <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 bg-gray-100 text-gray-500">기타</span>
+                          )}
                           <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${isMine ? 'bg-gray-100 text-gray-500' : 'bg-blue-50 text-blue-500'}`}>
                             {personName}
                           </span>

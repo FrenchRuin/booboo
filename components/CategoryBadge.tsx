@@ -1,19 +1,17 @@
-import type { Category } from '@/types'
-
 type Props = {
-  category: Category
+  category: { name: string; color: string }
   size?: 'sm' | 'md'
 }
 
 export default function CategoryBadge({ category, size = 'md' }: Props) {
-  const sizeClass = size === 'sm' ? 'w-8 h-8 text-base' : 'w-10 h-10 text-xl'
+  const sizeClass = size === 'sm' ? 'text-xs px-2 py-0.5' : 'text-sm px-2.5 py-1'
 
   return (
-    <div
-      className={`${sizeClass} rounded-full flex items-center justify-center flex-shrink-0`}
-      style={{ backgroundColor: category.color + '22' }}
+    <span
+      className={`${sizeClass} rounded-full font-medium truncate`}
+      style={{ backgroundColor: category.color + '22', color: category.color }}
     >
-      <span>{category.icon}</span>
-    </div>
+      {category.name}
+    </span>
   )
 }

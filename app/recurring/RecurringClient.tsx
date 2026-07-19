@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
+import CategoryBadge from '@/components/CategoryBadge'
 import { Dialog, useConfirm } from '@/components/Dialog'
 import type { Category, IncomeCategory, Profile, RecurringExpense } from '@/types'
 
@@ -168,20 +169,25 @@ export default function RecurringClient({ currentUserId }: Props) {
             {/* 카테고리 */}
             <div>
               <label className="text-xs font-medium text-gray-500 mb-1.5 block">카테고리</label>
-              <div className="grid grid-cols-4 gap-1.5">
-                {formCategories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setFormCategoryId(cat.id)}
-                    className={`flex flex-col items-center py-2 px-1 rounded-xl border transition-colors ${
-                      formCategoryId === cat.id ? 'border-blue-400 bg-blue-50' : 'border-gray-100 bg-gray-50'
-                    }`}
-                  >
-                    <span className="text-lg">{cat.icon}</span>
-                    <span className="text-xs text-gray-600 mt-0.5 leading-tight text-center">{cat.name}</span>
-                  </button>
-                ))}
+              <div className="flex flex-wrap gap-2">
+                {formCategories.map((cat) => {
+                  const selected = formCategoryId === cat.id
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setFormCategoryId(cat.id)}
+                      style={{
+                        backgroundColor: cat.color + (selected ? '33' : '18'),
+                        color: cat.color,
+                        borderColor: selected ? cat.color : 'transparent',
+                      }}
+                      className="px-3 py-1.5 rounded-full border-2 text-sm font-medium transition-colors"
+                    >
+                      {cat.name}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
@@ -326,7 +332,11 @@ export default function RecurringClient({ currentUserId }: Props) {
 
               return (
                 <div key={item.id} className="flex items-center gap-3 p-3.5 bg-white rounded-2xl shadow-sm border border-gray-100">
-                  <span className="text-xl flex-shrink-0">{cat?.icon ?? '📦'}</span>
+                  {cat ? (
+                    <CategoryBadge category={cat} size="sm" />
+                  ) : (
+                    <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 bg-gray-100 text-gray-500">기타</span>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-800 truncate">{item.title}</p>
                     <p className="text-xs text-gray-400 mt-0.5">

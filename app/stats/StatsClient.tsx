@@ -267,7 +267,6 @@ function MonthlyContent({
                 <div key={category.id}>
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="text-base">{category.icon}</span>
                       <span className="text-sm text-gray-700">{category.name}</span>
                       <span className="text-xs text-gray-400">{count}건</span>
                     </div>
@@ -300,7 +299,6 @@ function MonthlyContent({
                 <div key={category.id}>
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="text-base">{category.icon}</span>
                       <span className="text-sm text-gray-700">{category.name}</span>
                       <span className="text-xs text-gray-400">{count}건</span>
                     </div>

@@ -192,6 +192,15 @@ export default function ProfileClient({ userId, email }: Props) {
           <p className="text-sm text-red-500 px-1">{error}</p>
         )}
 
+        {/* 카테고리 관리 */}
+        <button
+          onClick={() => router.push('/settings/categories')}
+          className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center justify-between hover:bg-gray-50 transition-colors"
+        >
+          <span className="text-sm font-medium text-gray-900">지출/소득 유형 관리</span>
+          <span className="text-gray-300">›</span>
+        </button>
+
         {/* 로그아웃 */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
           <button

@@ -1,15 +1,17 @@
 export type Category = {
   id: string
   name: string
-  icon: string
   color: string
+  sort_order: number
+  is_active: boolean
 }
 
 export type IncomeCategory = {
   id: string
   name: string
-  icon: string
   color: string
+  sort_order: number
+  is_active: boolean
 }
 
 export type Profile = {

@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
+import CategoryBadge from '@/components/CategoryBadge'
 import type { Profile, RecurringExpense, Category, IncomeCategory } from '@/types'
 
 type ApplyItem = RecurringExpense & {
@@ -182,7 +183,11 @@ function ApplyForm({ currentUserId }: Props) {
                     {item.checked && <span className="text-white text-[10px] font-bold">✓</span>}
                   </button>
 
-                  <span className="text-xl flex-shrink-0">{cat?.icon ?? '📦'}</span>
+                  {cat ? (
+                    <CategoryBadge category={cat} size="sm" />
+                  ) : (
+                    <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 bg-gray-100 text-gray-500">기타</span>
+                  )}
 
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-800 truncate">{item.title}</p>
