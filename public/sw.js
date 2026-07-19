@@ -23,6 +23,9 @@ self.addEventListener('activate', (event) => {
 
 // fetch: 네트워크 우선, 실패 시 캐시 fallback
 self.addEventListener('fetch', (event) => {
+  // http/https 이외의 스킴(chrome-extension 등)은 무시
+  if (!event.request.url.startsWith('http')) return
+
   // API 요청이나 Supabase 요청은 캐싱하지 않음
   const url = new URL(event.request.url)
   if (
