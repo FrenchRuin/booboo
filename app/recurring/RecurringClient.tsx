@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
+import { Dialog, useConfirm } from '@/components/Dialog'
 import type { Category, IncomeCategory, Profile, RecurringExpense } from '@/types'
 
 type Props = {
@@ -27,6 +28,8 @@ export default function RecurringClient({ currentUserId }: Props) {
   const [formDay, setFormDay] = useState('1')
   const [formPaidBy, setFormPaidBy] = useState(currentUserId)
   const [formSaving, setFormSaving] = useState(false)
+
+  const { confirm, dialogProps } = useConfirm()
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -58,7 +61,8 @@ export default function RecurringClient({ currentUserId }: Props) {
       : incomeCategories.find((c) => c.id === item.category_id)
 
   const handleDelete = async (id: string) => {
-    if (!confirm('이 고정비 항목을 삭제할까요?')) return
+    const ok = await confirm('이 고정비 항목을 삭제할까요?', { confirmLabel: '삭제', danger: true })
+    if (!ok) return
     const supabase = createClient()
     await supabase.from('recurring_expenses').delete().eq('id', id)
     fetchData()
@@ -109,6 +113,7 @@ export default function RecurringClient({ currentUserId }: Props) {
 
   return (
     <div className="flex flex-col h-full">
+      <Dialog {...dialogProps} />
       <header className="bg-white px-5 pt-12 pb-5 shadow-[0_1px_0_0_#F0F0F0]">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <h1 className="text-lg font-bold text-gray-900">고정비 관리</h1>

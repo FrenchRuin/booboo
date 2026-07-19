@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
+import { Dialog, useConfirm } from '@/components/Dialog'
 import type { Category, IncomeCategory, Profile, RecurringExpense } from '@/types'
 
 type Props = {
@@ -16,6 +17,8 @@ export default function RecurringManager({ currentUserId, onClose }: Props) {
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const { confirm, dialogProps } = useConfirm()
 
   const [showAddForm, setShowAddForm] = useState(false)
   const [formTitle, setFormTitle] = useState('')
@@ -58,7 +61,8 @@ export default function RecurringManager({ currentUserId, onClose }: Props) {
       : incomeCategories.find((c) => c.id === item.category_id)
 
   const handleDelete = async (id: string) => {
-    if (!confirm('이 고정비 항목을 삭제할까요?')) return
+    const ok = await confirm('이 고정비 항목을 삭제할까요?', { confirmLabel: '삭제', danger: true })
+    if (!ok) return
     const supabase = createClient()
     await supabase.from('recurring_expenses').delete().eq('id', id)
     fetchData()
@@ -109,6 +113,7 @@ export default function RecurringManager({ currentUserId, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end" onClick={onClose}>
+      <Dialog {...dialogProps} />
       <div
         className="w-full bg-white rounded-t-2xl shadow-xl max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import CategoryBadge from '@/components/CategoryBadge'
+import { Dialog, useConfirm } from '@/components/Dialog'
 import type { Expense, Income, Profile } from '@/types'
 
 type EntryType = 'expense' | 'income'
@@ -19,6 +20,7 @@ type Props = {
 
 export default function ExpenseList({ currentUserId, year, month, onDeleted }: Props) {
   const router = useRouter()
+  const { confirm, alert, dialogProps } = useConfirm()
   const [entries, setEntries] = useState<Entry[]>([])
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
@@ -73,7 +75,8 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
 
   const handleDelete = async (id: string, type: EntryType) => {
     const label = type === 'expense' ? '지출' : '소득'
-    if (!confirm(`이 ${label}을 삭제할까요?`)) return
+    const ok = await confirm(`이 ${label} 내역을 삭제할까요?`, { confirmLabel: '삭제', danger: true })
+    if (!ok) return
     setDeletingId(id)
     const supabase = createClient()
     const { error } = await supabase
@@ -81,7 +84,7 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id)
     if (error) {
-      alert('삭제에 실패했어요: ' + error.message)
+      await alert('삭제에 실패했어요: ' + error.message)
     } else {
       onDeleted?.()
     }
@@ -142,6 +145,7 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
 
   return (
     <div className="space-y-3">
+      <Dialog {...dialogProps} />
       {/* 타입 필터 탭 */}
       <div className="flex bg-gray-100 rounded-xl p-1">
         {(['all', 'expense', 'income'] as TypeFilter[]).map((type) => (
