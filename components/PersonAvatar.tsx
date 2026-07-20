@@ -13,7 +13,7 @@ export default function PersonAvatar({ profile, size = 20 }: Props) {
         src={profile.avatar_url}
         alt={profile.display_name}
         style={style}
-        className="rounded-full object-cover flex-shrink-0 bg-gray-100"
+        className="rounded-full object-cover flex-shrink-0 bg-gray-100 dark:bg-gray-800"
       />
     )
   }
@@ -21,7 +21,7 @@ export default function PersonAvatar({ profile, size = 20 }: Props) {
   return (
     <span
       style={style}
-      className="rounded-full bg-gray-200 text-gray-500 flex items-center justify-center flex-shrink-0 font-medium"
+      className="rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 flex items-center justify-center flex-shrink-0 font-medium"
     >
       <span style={{ fontSize: size * 0.5 }}>{profile?.display_name?.[0] ?? '?'}</span>
     </span>

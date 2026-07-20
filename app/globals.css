@@ -1,9 +1,16 @@
 @import "tailwindcss";
 @import "pretendard/dist/web/variable/pretendardvariable.css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #F7F8FA;
   --foreground: #171717;
+}
+
+.dark {
+  --background: #0A0E14;
+  --foreground: #F3F4F6;
 }
 
 body {

@@ -115,9 +115,9 @@ export default function CategoriesClient() {
   const inactiveList = list.filter((c) => !c.is_active)
 
   const renderForm = (submitLabel: string) => (
-    <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
+    <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 space-y-3">
       <div>
-        <label className="text-xs font-medium text-gray-500 mb-1.5 block">이름</label>
+        <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">이름</label>
         <input
           type="text"
           autoFocus
@@ -125,11 +125,11 @@ export default function CategoriesClient() {
           onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
           placeholder="예: 반려동물"
           maxLength={20}
-          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-gray-900"
         />
       </div>
       <div>
-        <label className="text-xs font-medium text-gray-500 mb-1.5 block">색상</label>
+        <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">색상</label>
         <div className="flex flex-wrap items-center gap-2 mb-2">
           {PRESET_COLORS.map((c) => (
             <button
@@ -138,12 +138,12 @@ export default function CategoriesClient() {
               onClick={() => setForm((f) => ({ ...f, color: c }))}
               style={{ backgroundColor: c }}
               className={`w-7 h-7 rounded-full flex-shrink-0 transition-transform ${
-                form.color.toLowerCase() === c.toLowerCase() ? 'ring-2 ring-offset-2 ring-gray-900 scale-105' : ''
+                form.color.toLowerCase() === c.toLowerCase() ? 'ring-2 ring-offset-2 ring-gray-900 dark:ring-gray-400 scale-105' : ''
               }`}
               aria-label={c}
             />
           ))}
-          <label className="w-7 h-7 rounded-full flex-shrink-0 border border-dashed border-gray-300 flex items-center justify-center text-gray-400 cursor-pointer relative overflow-hidden text-xs">
+          <label className="w-7 h-7 rounded-full flex-shrink-0 border border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-400 dark:text-gray-500 cursor-pointer relative overflow-hidden text-xs">
             🎨
             <input
               type="color"
@@ -158,12 +158,12 @@ export default function CategoriesClient() {
         )}
       </div>
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && <p className="text-sm text-red-500 dark:text-red-400">{error}</p>}
 
       <div className="flex gap-2">
         <button
           onClick={resetForm}
-          className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-500 hover:bg-gray-100 transition-colors"
+          className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         >
           취소
         </button>
@@ -183,28 +183,28 @@ export default function CategoriesClient() {
     <div className="flex flex-col h-full">
       <Dialog {...dialogProps} />
 
-      <header className="bg-white px-5 pt-12 pb-4 shadow-[0_1px_0_0_#F0F0F0]">
+      <header className="bg-white dark:bg-gray-900 px-5 pt-12 pb-4 shadow-[0_1px_0_0_#F0F0F0]">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-600"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
           >
             <ChevronIcon direction="left" />
           </button>
-          <h1 className="text-lg font-bold text-gray-900">카테고리 관리</h1>
+          <h1 className="text-lg font-bold text-gray-900 dark:text-gray-50">카테고리 관리</h1>
         </div>
       </header>
 
       <main className="flex-1 overflow-y-auto pb-24 px-4 pt-5 max-w-lg mx-auto w-full space-y-4">
         {/* 지출 / 소득 탭 */}
-        <div className="flex bg-gray-100 rounded-xl p-1">
+        <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
           {(['expense', 'income'] as const).map((t) => (
             <button
               key={t}
               type="button"
               onClick={() => { setType(t); resetForm() }}
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-                type === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                type === t ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50 shadow-sm' : 'text-gray-500 dark:text-gray-400'
               }`}
             >
               {t === 'expense' ? '💳 지출 유형' : '💰 소득 유형'}
@@ -215,7 +215,7 @@ export default function CategoriesClient() {
         {/* 추가 버튼 */}
         <button
           onClick={startAdd}
-          className="w-full py-2.5 rounded-xl border border-dashed border-gray-300 text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
+          className="w-full py-2.5 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
         >
           {showAddForm ? '취소' : '+ 새 유형 추가'}
         </button>
@@ -232,19 +232,19 @@ export default function CategoriesClient() {
               editingId === cat.id ? (
                 <div key={cat.id}>{renderForm('수정 완료')}</div>
               ) : (
-                <div key={cat.id} className="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-gray-100">
+                <div key={cat.id} className="flex items-center gap-3 p-3.5 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800">
                   <div className="flex-1 min-w-0">
                     <CategoryBadge category={cat} />
                   </div>
                   <button
                     onClick={() => startEdit(cat)}
-                    className="text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+                    className="text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
                   >
                     수정
                   </button>
                   <button
                     onClick={() => handleToggleActive(cat)}
-                    className="text-xs font-medium text-red-500 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+                    className="text-xs font-medium text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
                   >
                     비활성화
                   </button>
@@ -255,18 +255,18 @@ export default function CategoriesClient() {
             {inactiveList.length > 0 && (
               <>
                 <div className="flex items-center gap-2 pt-4 pb-1.5 px-1">
-                  <span className="text-xs font-bold text-gray-500">사용 안 함</span>
-                  <span className="text-xs text-gray-400">{inactiveList.length}개</span>
-                  <div className="flex-1 h-px bg-gray-200" />
+                  <span className="text-xs font-bold text-gray-500 dark:text-gray-400">사용 안 함</span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500">{inactiveList.length}개</span>
+                  <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
                 </div>
                 {inactiveList.map((cat) => (
-                  <div key={cat.id} className="flex items-center gap-3 p-3.5 bg-gray-50 rounded-2xl border border-gray-100">
+                  <div key={cat.id} className="flex items-center gap-3 p-3.5 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-800">
                     <div className="flex-1 min-w-0 grayscale opacity-70">
                       <CategoryBadge category={cat} />
                     </div>
                     <button
                       onClick={() => handleToggleActive(cat)}
-                      className="text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+                      className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
                     >
                       다시 사용
                     </button>

@@ -131,17 +131,17 @@ function ApplyForm({ currentUserId }: Props) {
 
   return (
     <div className="flex flex-col h-full">
-      <header className="bg-white px-5 pt-12 pb-4 shadow-[0_1px_0_0_#F0F0F0]">
+      <header className="bg-white dark:bg-gray-900 px-5 pt-12 pb-4 shadow-[0_1px_0_0_#F0F0F0]">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-600"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
           >
             <ChevronIcon direction="left" />
           </button>
           <div>
-            <h1 className="text-lg font-bold text-gray-900">고정비 적용</h1>
-            <p className="text-xs text-gray-400">{year}년 {month}월 · 금액 수정 후 적용하세요</p>
+            <h1 className="text-lg font-bold text-gray-900 dark:text-gray-50">고정비 적용</h1>
+            <p className="text-xs text-gray-400 dark:text-gray-500">{year}년 {month}월 · 금액 수정 후 적용하세요</p>
           </div>
         </div>
       </header>
@@ -152,8 +152,8 @@ function ApplyForm({ currentUserId }: Props) {
         ) : applyItems.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-4xl mb-3">📋</p>
-            <p className="text-sm text-gray-500 mb-1">{month}월에 해당하는 고정비가 없어요</p>
-            <p className="text-xs text-gray-400">하단 고정비 탭에서 등록해주세요</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{month}월에 해당하는 고정비가 없어요</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">하단 고정비 탭에서 등록해주세요</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -167,7 +167,7 @@ function ApplyForm({ currentUserId }: Props) {
                 <div
                   key={item.id}
                   className={`flex items-center gap-3 p-3.5 rounded-2xl border transition-colors ${
-                    item.checked ? 'border-blue-200 bg-blue-50' : 'border-gray-100 bg-white opacity-60'
+                    item.checked ? 'border-blue-200 bg-blue-50 dark:bg-blue-500/10' : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 opacity-60'
                   }`}
                 >
                   <button
@@ -177,7 +177,7 @@ function ApplyForm({ currentUserId }: Props) {
                       )
                     }
                     className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                      item.checked ? 'border-blue-500 bg-blue-500' : 'border-gray-300 bg-white'
+                      item.checked ? 'border-blue-500 bg-blue-500' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'
                     }`}
                   >
                     {item.checked && <span className="text-white text-[10px] font-bold">✓</span>}
@@ -186,12 +186,12 @@ function ApplyForm({ currentUserId }: Props) {
                   {cat ? (
                     <CategoryBadge category={cat} size="sm" />
                   ) : (
-                    <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 bg-gray-100 text-gray-500">기타</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">기타</span>
                   )}
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-800 truncate">{item.title}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{item.title}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                       {month}월 {day}일 · {payer?.display_name ?? '나'}
                       {item.period === 'yearly' && <span className="ml-1 text-orange-400">연간</span>}
                     </p>
@@ -209,15 +209,15 @@ function ApplyForm({ currentUserId }: Props) {
                           )
                         )
                       }
-                      className="w-24 text-right text-sm font-bold text-gray-900 border-b-2 border-gray-200 focus:border-blue-500 focus:outline-none bg-transparent py-0.5"
+                      className="w-24 text-right text-sm font-bold text-gray-900 dark:text-gray-50 border-b-2 border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:outline-none bg-transparent py-0.5"
                     />
-                    <span className="text-xs text-gray-400">원</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">원</span>
                   </div>
                 </div>
               )
             })}
 
-            {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
+            {error && <p className="text-sm text-red-500 dark:text-red-400 mt-2">{error}</p>}
 
             <div className="pt-2">
               <button
@@ -242,7 +242,7 @@ export default function ApplyClient(props: Props) {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center h-full">
-        <div className="w-6 h-6 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-gray-200 dark:border-gray-700 border-t-blue-500 rounded-full animate-spin" />
       </div>
     }>
       <ApplyForm {...props} />

@@ -121,15 +121,15 @@ function AddExpenseForm({ currentUserId }: Props) {
 
   return (
     <div className="flex flex-col h-full">
-      <header className="bg-white px-5 pt-12 pb-4 shadow-[0_1px_0_0_#F0F0F0]">
+      <header className="bg-white dark:bg-gray-900 px-5 pt-12 pb-4 shadow-[0_1px_0_0_#F0F0F0]">
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-600"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
           >
             <ChevronIcon direction="left" />
           </button>
-          <h1 className="text-lg font-bold text-gray-900">
+          <h1 className="text-lg font-bold text-gray-900 dark:text-gray-50">
             {isEdit ? '내역 수정' : '내역 추가'}
           </h1>
         </div>
@@ -141,12 +141,12 @@ function AddExpenseForm({ currentUserId }: Props) {
         ) : (
           <div className="space-y-4">
             {/* 지출 / 소득 탭 */}
-            <div className={`flex bg-gray-100 rounded-xl p-1 ${isEdit ? 'opacity-60 pointer-events-none' : ''}`}>
+            <div className={`flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1 ${isEdit ? 'opacity-60 pointer-events-none' : ''}`}>
               <button
                 type="button"
                 onClick={() => handleTypeChange('expense')}
                 className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  entryType === 'expense' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                  entryType === 'expense' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50 shadow-sm' : 'text-gray-500 dark:text-gray-400'
                 }`}
               >
                 💳 지출
@@ -155,7 +155,7 @@ function AddExpenseForm({ currentUserId }: Props) {
                 type="button"
                 onClick={() => handleTypeChange('income')}
                 className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  entryType === 'income' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                  entryType === 'income' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50 shadow-sm' : 'text-gray-500 dark:text-gray-400'
                 }`}
               >
                 💰 소득
@@ -163,8 +163,8 @@ function AddExpenseForm({ currentUserId }: Props) {
             </div>
 
             {/* 금액 */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-              <label className="text-xs font-medium text-gray-500 mb-1.5 block">금액</label>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-4">
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">금액</label>
               <div className="relative">
                 <input
                   type="text"
@@ -172,15 +172,15 @@ function AddExpenseForm({ currentUserId }: Props) {
                   value={amount}
                   onChange={(e) => setAmount(formatAmount(e.target.value))}
                   placeholder="0"
-                  className="w-full text-2xl font-bold px-4 py-3 pr-12 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 bg-gray-50"
+                  className="w-full text-2xl font-bold px-4 py-3 pr-12 rounded-xl border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 dark:text-gray-50 bg-gray-50 dark:bg-gray-800"
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">원</span>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 font-medium">원</span>
               </div>
             </div>
 
             {/* 카테고리 */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-              <label className="text-xs font-medium text-gray-500 mb-2 block">카테고리</label>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-4">
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 block">카테고리</label>
               <div className="flex flex-wrap gap-2">
                 {currentCategories.map((cat) => {
                   const selected = categoryId === cat.id
@@ -204,14 +204,14 @@ function AddExpenseForm({ currentUserId }: Props) {
             </div>
 
             {/* 결제자 / 수취인 */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-              <label className="text-xs font-medium text-gray-500 mb-2 block">{personLabel}</label>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-4">
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 block">{personLabel}</label>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => setPersonId(currentUserId)}
                   className={`flex-1 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
-                    personId === currentUserId ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-600 bg-white'
+                    personId === currentUserId ? 'border-gray-900 dark:border-gray-100 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900' : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-900'
                   }`}
                 >
                   {me?.display_name ?? '나'}
@@ -221,7 +221,7 @@ function AddExpenseForm({ currentUserId }: Props) {
                     type="button"
                     onClick={() => setPersonId(partner.id)}
                     className={`flex-1 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
-                      personId === partner.id ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-600 bg-white'
+                      personId === partner.id ? 'border-gray-900 dark:border-gray-100 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900' : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-900'
                     }`}
                   >
                     {partner.display_name}
@@ -231,36 +231,38 @@ function AddExpenseForm({ currentUserId }: Props) {
             </div>
 
             {/* 날짜 */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-              <label className="text-xs font-medium text-gray-500 mb-1.5 block">날짜</label>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-4">
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">날짜</label>
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 bg-gray-50"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 dark:text-gray-50 bg-gray-50 dark:bg-gray-800"
               />
             </div>
 
             {/* 메모 */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-              <label className="text-xs font-medium text-gray-500 mb-1.5 block">메모 (선택)</label>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-4">
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">메모 (선택)</label>
               <input
                 type="text"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder={entryType === 'expense' ? '어디서 뭘 샀는지...' : '어디서 받은 소득인지...'}
                 maxLength={100}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 placeholder-gray-400 bg-gray-50"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-900 dark:text-gray-50 placeholder-gray-400 dark:placeholder-gray-500 bg-gray-50 dark:bg-gray-800"
               />
             </div>
 
-            {error && <p className="text-sm text-red-500 px-1">{error}</p>}
+            {error && <p className="text-sm text-red-500 dark:text-red-400 px-1">{error}</p>}
 
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className={`w-full py-4 rounded-2xl font-semibold text-base transition-colors disabled:opacity-50 text-white flex items-center justify-center gap-2 ${
-                entryType === 'expense' ? 'bg-gray-900 hover:bg-gray-700' : 'bg-green-600 hover:bg-green-700'
+              className={`w-full py-4 rounded-2xl font-semibold text-base transition-colors disabled:opacity-50 flex items-center justify-center gap-2 ${
+                entryType === 'expense'
+                  ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-gray-300'
+                  : 'bg-green-600 text-white hover:bg-green-700'
               }`}
             >
               {loading && <Spinner />}
@@ -279,7 +281,7 @@ export default function AddExpenseClient(props: Props) {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center h-full">
-        <div className="w-6 h-6 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-gray-200 dark:border-gray-700 border-t-blue-500 rounded-full animate-spin" />
       </div>
     }>
       <AddExpenseForm {...props} />

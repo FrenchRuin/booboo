@@ -116,12 +116,12 @@ export default function RecurringClient({ currentUserId }: Props) {
   return (
     <div className="flex flex-col h-full">
       <Dialog {...dialogProps} />
-      <header className="bg-white px-5 pt-12 pb-5 shadow-[0_1px_0_0_#F0F0F0]">
+      <header className="bg-white dark:bg-gray-900 px-5 pt-12 pb-5 shadow-[0_1px_0_0_#F0F0F0]">
         <div className="max-w-lg mx-auto flex items-center justify-between">
-          <h1 className="text-lg font-bold text-gray-900">고정비 관리</h1>
+          <h1 className="text-lg font-bold text-gray-900 dark:text-gray-50">고정비 관리</h1>
           <button
             onClick={() => showAddForm ? resetForm() : setShowAddForm(true)}
-            className="text-sm text-blue-500 font-medium px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors"
+            className="text-sm text-blue-500 dark:text-blue-400 font-medium px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"
           >
             {showAddForm ? '취소' : '+ 추가'}
           </button>
@@ -132,24 +132,24 @@ export default function RecurringClient({ currentUserId }: Props) {
 
         {/* 추가 폼 */}
         {showAddForm && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-4 space-y-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-4 mb-4 space-y-4">
             {/* 항목명 */}
             <div>
-              <label className="text-xs font-medium text-gray-500 mb-1.5 block">항목명</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">항목명</label>
               <input
                 type="text"
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
                 placeholder="월세, 넷플릭스, 자동차보험..."
                 maxLength={30}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-gray-900"
               />
             </div>
 
             {/* 지출 / 소득 */}
             <div>
-              <label className="text-xs font-medium text-gray-500 mb-1.5 block">구분</label>
-              <div className="flex bg-gray-100 rounded-xl p-0.5">
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">구분</label>
+              <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-0.5">
                 {(['expense', 'income'] as const).map((t) => (
                   <button
                     key={t}
@@ -157,8 +157,8 @@ export default function RecurringClient({ currentUserId }: Props) {
                     onClick={() => { setFormType(t); setFormCategoryId(null) }}
                     className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                       formType === t
-                        ? t === 'expense' ? 'bg-gray-900 text-white' : 'bg-green-600 text-white'
-                        : 'text-gray-500'
+                        ? t === 'expense' ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900' : 'bg-green-600 text-white'
+                        : 'text-gray-500 dark:text-gray-400'
                     }`}
                   >
                     {t === 'expense' ? '💳 지출' : '💰 소득'}
@@ -169,7 +169,7 @@ export default function RecurringClient({ currentUserId }: Props) {
 
             {/* 카테고리 */}
             <div>
-              <label className="text-xs font-medium text-gray-500 mb-1.5 block">카테고리</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">카테고리</label>
               <div className="flex flex-wrap gap-2">
                 {formCategories.map((cat) => {
                   const selected = formCategoryId === cat.id
@@ -194,7 +194,7 @@ export default function RecurringClient({ currentUserId }: Props) {
 
             {/* 금액 */}
             <div>
-              <label className="text-xs font-medium text-gray-500 mb-1.5 block">기본 금액 (적용 시 수정 가능)</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">기본 금액 (적용 시 수정 가능)</label>
               <div className="relative">
                 <input
                   type="text"
@@ -202,15 +202,15 @@ export default function RecurringClient({ currentUserId }: Props) {
                   value={formAmount}
                   onChange={(e) => setFormAmount(formatAmount(e.target.value))}
                   placeholder="0"
-                  className="w-full px-4 py-2.5 pr-8 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+                  className="w-full px-4 py-2.5 pr-8 rounded-xl border border-gray-200 dark:border-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-gray-900"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">원</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 dark:text-gray-500">원</span>
               </div>
             </div>
 
             {/* 주기 */}
             <div>
-              <label className="text-xs font-medium text-gray-500 mb-1.5 block">주기</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">주기</label>
               <div className="flex gap-2">
                 {(['monthly', 'yearly'] as const).map((p) => (
                   <button
@@ -218,7 +218,7 @@ export default function RecurringClient({ currentUserId }: Props) {
                     type="button"
                     onClick={() => setFormPeriod(p)}
                     className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors ${
-                      formPeriod === p ? 'border-blue-400 bg-blue-50 text-blue-600' : 'border-gray-200 text-gray-500 bg-white'
+                      formPeriod === p ? 'border-blue-400 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-900'
                     }`}
                   >
                     {p === 'monthly' ? '매월' : '매년'}
@@ -230,7 +230,7 @@ export default function RecurringClient({ currentUserId }: Props) {
             {/* 적용 월 (연간일 때) */}
             {formPeriod === 'yearly' && (
               <div>
-                <label className="text-xs font-medium text-gray-500 mb-1.5 block">적용 월</label>
+                <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">적용 월</label>
                 <div className="grid grid-cols-6 gap-1.5">
                   {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                     <button
@@ -238,7 +238,7 @@ export default function RecurringClient({ currentUserId }: Props) {
                       type="button"
                       onClick={() => setFormApplyMonth(String(m))}
                       className={`py-1.5 rounded-lg border text-xs font-medium transition-colors ${
-                        String(m) === formApplyMonth ? 'border-blue-400 bg-blue-50 text-blue-600' : 'border-gray-200 text-gray-500 bg-white'
+                        String(m) === formApplyMonth ? 'border-blue-400 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-900'
                       }`}
                     >
                       {m}월
@@ -250,7 +250,7 @@ export default function RecurringClient({ currentUserId }: Props) {
 
             {/* 며칠 */}
             <div>
-              <label className="text-xs font-medium text-gray-500 mb-1.5 block">
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">
                 {formPeriod === 'monthly' ? '매월 며칠' : '해당 월 며칠'}
               </label>
               <div className="flex items-center gap-2">
@@ -259,15 +259,15 @@ export default function RecurringClient({ currentUserId }: Props) {
                   min={1} max={31}
                   value={formDay}
                   onChange={(e) => setFormDay(e.target.value)}
-                  className="w-20 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white text-center"
+                  className="w-20 px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-gray-900 text-center"
                 />
-                <span className="text-sm text-gray-500">일</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">일</span>
               </div>
             </div>
 
             {/* 결제자 */}
             <div>
-              <label className="text-xs font-medium text-gray-500 mb-1.5 block">
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">
                 {formType === 'expense' ? '결제자' : '수취인'}
               </label>
               <div className="flex gap-2">
@@ -275,7 +275,7 @@ export default function RecurringClient({ currentUserId }: Props) {
                   type="button"
                   onClick={() => setFormPaidBy(currentUserId)}
                   className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors ${
-                    formPaidBy === currentUserId ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-600 bg-white'
+                    formPaidBy === currentUserId ? 'border-gray-900 dark:border-gray-100 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900' : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-900'
                   }`}
                 >
                   {me?.display_name ?? '나'}
@@ -285,7 +285,7 @@ export default function RecurringClient({ currentUserId }: Props) {
                     type="button"
                     onClick={() => setFormPaidBy(partner.id)}
                     className={`flex-1 py-2 rounded-xl border text-sm font-medium transition-colors ${
-                      formPaidBy === partner.id ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-200 text-gray-600 bg-white'
+                      formPaidBy === partner.id ? 'border-gray-900 dark:border-gray-100 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900' : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-900'
                     }`}
                   >
                     {partner.display_name}
@@ -294,7 +294,7 @@ export default function RecurringClient({ currentUserId }: Props) {
               </div>
             </div>
 
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && <p className="text-sm text-red-500 dark:text-red-400">{error}</p>}
 
             <button
               onClick={handleAddSave}
@@ -313,7 +313,7 @@ export default function RecurringClient({ currentUserId }: Props) {
         ) : items.length === 0 && !showAddForm ? (
           <div className="text-center py-20">
             <p className="text-4xl mb-3">📋</p>
-            <p className="text-sm text-gray-400 mb-4">등록된 고정비가 없어요</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">등록된 고정비가 없어요</p>
             <button
               onClick={() => setShowAddForm(true)}
               className="px-5 py-2.5 bg-blue-500 text-white text-sm rounded-xl font-medium"
@@ -331,27 +331,27 @@ export default function RecurringClient({ currentUserId }: Props) {
                 : `매년 ${item.apply_month}월 ${item.day_of_month}일`
 
               return (
-                <div key={item.id} className="flex items-center gap-3 p-3.5 bg-white rounded-2xl shadow-sm border border-gray-100">
+                <div key={item.id} className="flex items-center gap-3 p-3.5 bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
                   {cat ? (
                     <CategoryBadge category={cat} size="sm" />
                   ) : (
-                    <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 bg-gray-100 text-gray-500">기타</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">기타</span>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-800 truncate">{item.title}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{item.title}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                       {periodLabel} · {item.amount.toLocaleString('ko-KR')}원 · {payer?.display_name ?? '나'}
                     </p>
                   </div>
                   <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
-                    item.type === 'expense' ? 'bg-red-50 text-red-500' : 'bg-green-50 text-green-600'
+                    item.type === 'expense' ? 'bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400' : 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400'
                   }`}>
                     {item.type === 'expense' ? '지출' : '소득'}
                   </span>
                   {item.paid_by === currentUserId && (
                     <button
                       onClick={() => handleDelete(item.id)}
-                      className="text-gray-300 hover:text-red-400 transition-colors p-1 flex-shrink-0"
+                      className="text-gray-300 dark:text-gray-600 hover:text-red-400 dark:hover:text-red-300 transition-colors p-1 flex-shrink-0"
                     >
                       ✕
                     </button>

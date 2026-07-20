@@ -17,11 +17,11 @@ export default function BottomNav() {
       <Link
         href={href}
         className={`flex-1 flex flex-col items-center py-3 gap-0.5 transition-colors relative ${
-          active ? 'text-blue-500' : 'text-gray-400'
+          active ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'
         }`}
       >
         <span className="text-xl">{icon}</span>
-        <span className={`text-xs font-medium ${active ? 'text-blue-500' : 'text-gray-400'}`}>
+        <span className={`text-xs font-medium ${active ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'}`}>
           {label}
         </span>
         {active && (
@@ -32,7 +32,7 @@ export default function BottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-1px_0_0_#F0F0F0] safe-area-inset-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 shadow-[0_-1px_0_0_#F0F0F0] safe-area-inset-bottom">
       <div className="relative flex max-w-lg mx-auto">
         {/* 왼쪽 2개 */}
         <NavItem href="/expenses" label="가계부" icon="💳" />
@@ -48,7 +48,7 @@ export default function BottomNav() {
         {/* 정가운데 + 버튼 (absolute) */}
         <button
           onClick={handleAdd}
-          className="absolute left-1/2 -translate-x-1/2 -translate-y-3 w-14 h-14 bg-blue-500 hover:bg-blue-600 active:scale-95 text-white text-2xl rounded-full shadow-lg shadow-blue-200 flex items-center justify-center transition-all"
+          className="absolute left-1/2 -translate-x-1/2 -translate-y-3 w-14 h-14 bg-blue-500 hover:bg-blue-600 active:scale-95 text-white text-2xl rounded-full shadow-lg shadow-blue-200 dark:shadow-blue-950/40 flex items-center justify-center transition-all"
           aria-label="내역 추가"
         >
           +

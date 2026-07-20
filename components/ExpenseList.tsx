@@ -145,13 +145,13 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
     <div className="space-y-3">
       <Dialog {...dialogProps} />
       {/* 타입 필터 탭 */}
-      <div className="flex bg-gray-100 rounded-xl p-1">
+      <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
         {(['all', 'expense', 'income'] as TypeFilter[]).map((type) => (
           <button
             key={type}
             onClick={() => handleTypeFilter(type)}
             className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              typeFilter === type ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+              typeFilter === type ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50 shadow-sm' : 'text-gray-500 dark:text-gray-400'
             }`}
           >
             {type === 'all' ? '전체' : type === 'expense' ? '💳 지출' : '💰 소득'}
@@ -167,7 +167,7 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
             className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
               categoryFilter === null
                 ? 'bg-gray-900 text-white'
-                : 'bg-white border border-gray-200 text-gray-500'
+                : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400'
             }`}
           >
             전체
@@ -179,7 +179,7 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                 categoryFilter === cat.id
                   ? 'bg-gray-900 text-white'
-                  : 'bg-white border border-gray-200 text-gray-600'
+                  : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300'
               }`}
             >
               {cat.name}
@@ -190,7 +190,7 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
 
       {/* 리스트 */}
       {Object.keys(grouped).length === 0 ? (
-        <div className="text-center py-16 text-gray-400">
+        <div className="text-center py-16 text-gray-400 dark:text-gray-500">
           <div className="text-4xl mb-2">🧾</div>
           <p className="text-sm">해당하는 내역이 없어요</p>
         </div>
@@ -204,14 +204,14 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
           return (
             <div key={date}>
               <div className="flex justify-between items-center mb-1 px-1">
-                <span className="text-xs font-medium text-gray-500">{dayLabel}</span>
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{dayLabel}</span>
                 <div className="flex gap-2 text-xs">
-                  {dayIncome > 0 && <span className="text-green-600">+{dayIncome.toLocaleString('ko-KR')}</span>}
-                  {dayExpense > 0 && <span className="text-gray-400">-{dayExpense.toLocaleString('ko-KR')}</span>}
+                  {dayIncome > 0 && <span className="text-green-600 dark:text-green-400">+{dayIncome.toLocaleString('ko-KR')}</span>}
+                  {dayExpense > 0 && <span className="text-gray-400 dark:text-gray-500">-{dayExpense.toLocaleString('ko-KR')}</span>}
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
                 {items.map((entry, idx) => {
                   const isIncome = entry._type === 'income'
                   const personId = isIncome
@@ -233,35 +233,35 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
                     <div
                       key={entry.id}
                       onClick={handleRowClick}
-                      className={`flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-gray-50 ${idx !== items.length - 1 ? 'border-b border-gray-50' : ''} ${deletingId === entry.id ? 'opacity-50' : ''}`}
+                      className={`flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-gray-50 dark:active:bg-gray-800 ${idx !== items.length - 1 ? 'border-b border-gray-50 dark:border-gray-800' : ''} ${deletingId === entry.id ? 'opacity-50' : ''}`}
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {category ? (
                             <CategoryBadge category={category} size="sm" />
                           ) : (
-                            <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 bg-gray-100 text-gray-500">기타</span>
+                            <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">기타</span>
                           )}
-                          <span className={`flex items-center gap-1 pl-0.5 pr-1.5 py-0.5 rounded-full flex-shrink-0 ${isMine ? 'bg-gray-100 text-gray-500' : 'bg-blue-50 text-blue-500'}`}>
+                          <span className={`flex items-center gap-1 pl-0.5 pr-1.5 py-0.5 rounded-full flex-shrink-0 ${isMine ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400' : 'bg-blue-50 dark:bg-blue-500/10 text-blue-500 dark:text-blue-400'}`}>
                             <PersonAvatar profile={personProfile} size={14} />
                             <span className="text-xs">{personName}</span>
                           </span>
-                          <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${isIncome ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}>
+                          <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${isIncome ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-red-50 dark:bg-red-500/10 text-red-500 dark:text-red-400'}`}>
                             {isIncome ? '소득' : '지출'}
                           </span>
                         </div>
                         {entry.note && (
-                          <p className="text-xs text-gray-400 truncate mt-0.5">{entry.note}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5">{entry.note}</p>
                         )}
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className={`text-sm font-semibold ${isIncome ? 'text-green-600' : 'text-gray-900'}`}>
+                        <span className={`text-sm font-semibold ${isIncome ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-gray-50'}`}>
                           {isIncome ? '+' : '-'}{entry.amount.toLocaleString('ko-KR')}원
                         </span>
                         <button
                           onClick={(e) => { e.stopPropagation(); handleDelete(entry.id, entry._type) }}
-                          className="text-gray-300 hover:text-red-400 transition-colors text-xs p-1"
+                          className="text-gray-300 dark:text-gray-600 hover:text-red-400 dark:hover:text-red-300 transition-colors text-xs p-1"
                           aria-label="삭제"
                         >
                           ✕

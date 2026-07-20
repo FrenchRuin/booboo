@@ -60,21 +60,21 @@ export default function ExpensesClient({ currentUserId }: Props) {
   return (
     <div className="flex flex-col h-full">
       {/* 헤더 */}
-      <header className="bg-white px-5 pt-12 pb-5 shadow-[0_1px_0_0_#F0F0F0]">
+      <header className="bg-white dark:bg-gray-900 px-5 pt-12 pb-5 shadow-[0_1px_0_0_#F0F0F0]">
         <div className="max-w-lg mx-auto">
           {/* 월 선택 */}
           <div className="flex items-center justify-between mb-5">
             <button
               onClick={prevMonth}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-600"
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
             >
               <ChevronIcon direction="left" />
             </button>
-            <span className="text-sm font-semibold text-gray-500">{year}년 {month}월</span>
+            <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">{year}년 {month}월</span>
             <button
               onClick={nextMonth}
               disabled={isCurrentMonth}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-600 disabled:opacity-30"
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300 disabled:opacity-30"
             >
               <ChevronIcon direction="right" />
             </button>
@@ -82,8 +82,8 @@ export default function ExpensesClient({ currentUserId }: Props) {
 
           {/* 잔액 강조 */}
           <div className="mb-4">
-            <p className="text-xs text-gray-400 font-medium mb-1">이번 달 잔액</p>
-            <p className={`text-3xl font-bold tracking-tight ${balance >= 0 ? 'text-gray-900' : 'text-red-500'}`}>
+            <p className="text-xs text-gray-400 dark:text-gray-500 font-medium mb-1">이번 달 잔액</p>
+            <p className={`text-3xl font-bold tracking-tight ${balance >= 0 ? 'text-gray-900 dark:text-gray-50' : 'text-red-500 dark:text-red-400'}`}>
               {balance >= 0 ? '+' : ''}{balance.toLocaleString('ko-KR')}
               <span className="text-lg font-semibold ml-1">원</span>
             </p>
@@ -94,23 +94,23 @@ export default function ExpensesClient({ currentUserId }: Props) {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-blue-400" />
-                <span className="text-xs text-gray-400">소득</span>
-                <span className="text-sm font-semibold text-gray-700">
+                <span className="text-xs text-gray-400 dark:text-gray-500">소득</span>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                   {summary.income.toLocaleString('ko-KR')}원
                 </span>
               </div>
-              <div className="w-px h-3 bg-gray-200" />
+              <div className="w-px h-3 bg-gray-200 dark:bg-gray-700" />
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-red-400" />
-                <span className="text-xs text-gray-400">지출</span>
-                <span className="text-sm font-semibold text-gray-700">
+                <span className="text-xs text-gray-400 dark:text-gray-500">지출</span>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                   {summary.expense.toLocaleString('ko-KR')}원
                 </span>
               </div>
             </div>
             <button
               onClick={() => router.push(`/recurring/apply?year=${year}&month=${month}`)}
-              className="flex items-center gap-1 text-xs text-blue-500 font-medium px-2.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors"
+              className="flex items-center gap-1 text-xs text-blue-500 dark:text-blue-400 font-medium px-2.5 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"
             >
               🔁 고정비
             </button>

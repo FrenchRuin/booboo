@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import Script from 'next/script'
+import { THEME_INIT_SCRIPT } from '@/lib/theme'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -17,7 +18,10 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#111827',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#F7F8FA' },
+    { media: '(prefers-color-scheme: dark)', color: '#0A0E14' },
+  ],
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -30,8 +34,15 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="ko" className="h-full">
-      <body className="h-full bg-[#F7F8FA] antialiased">
+    <html lang="ko" className="h-full" suppressHydrationWarning>
+      <head>
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
+        />
+      </head>
+      <body className="h-full bg-[#F7F8FA] dark:bg-[#0A0E14] antialiased" suppressHydrationWarning>
         {children}
         <Script
           id="sw-register"
