@@ -466,7 +466,7 @@ function YearlyContent({ monthRows, yearlyIncome, yearlyExpense, year }: {
           return (
             <div
               key={row.month}
-              className={`grid grid-cols-4 px-4 py-3 border-b border-gray-50 dark:border-gray-800 last:border-0 ${isEmpty ? 'opacity-40' : ''} ${isCurrentM ? 'bg-blue-50 dark:bg-blue-500/10/50' : ''}`}
+              className={`grid grid-cols-4 px-4 py-3 border-b border-gray-50 dark:border-gray-800 last:border-0 ${isEmpty ? 'opacity-40' : ''} ${isCurrentM ? 'bg-blue-50/50 dark:bg-blue-500/10' : ''}`}
             >
               <span className={`text-sm font-medium ${isCurrentM ? 'text-blue-500 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'}`}>
                 {row.month}월
