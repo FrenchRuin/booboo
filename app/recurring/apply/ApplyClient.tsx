@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
 import CategoryBadge from '@/components/CategoryBadge'
-import ChevronIcon from '@/components/ChevronIcon'
+import { ChevronLeft, ClipboardList, Check } from 'lucide-react'
 import { CardListSkeleton, Spinner } from '@/components/Skeleton'
 import type { Profile, RecurringExpense, Category, IncomeCategory } from '@/types'
 
@@ -138,7 +138,7 @@ function ApplyForm({ currentUserId }: Props) {
             onClick={() => router.back()}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
           >
-            <ChevronIcon direction="left" />
+            <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
           </button>
           <div>
             <h1 className="text-lg font-bold text-gray-900 dark:text-gray-50">고정비 적용</h1>
@@ -152,7 +152,7 @@ function ApplyForm({ currentUserId }: Props) {
           <CardListSkeleton />
         ) : applyItems.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-4xl mb-3">📋</p>
+            <ClipboardList className="w-10 h-10 mx-auto mb-3 text-gray-300 dark:text-gray-600" strokeWidth={1.5} />
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{month}월에 해당하는 고정비가 없어요</p>
             <p className="text-xs text-gray-400 dark:text-gray-500">하단 고정비 탭에서 등록해주세요</p>
           </div>
@@ -181,7 +181,7 @@ function ApplyForm({ currentUserId }: Props) {
                       item.checked ? 'border-blue-500 bg-blue-500' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'
                     }`}
                   >
-                    {item.checked && <span className="text-white text-[10px] font-bold">✓</span>}
+                    {item.checked && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                   </button>
 
                   {cat ? (

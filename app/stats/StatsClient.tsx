@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
 import PersonAvatar from '@/components/PersonAvatar'
 import CategoryBadge from '@/components/CategoryBadge'
-import ChevronIcon from '@/components/ChevronIcon'
+import { ChevronLeft, ChevronRight, BarChart3, CalendarDays } from 'lucide-react'
 import { StatsContentSkeleton } from '@/components/Skeleton'
 import type { Category, IncomeCategory, Profile, Expense, Income } from '@/types'
 
@@ -194,7 +194,7 @@ export default function StatsClient({ currentUserId }: Props) {
               }}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
             >
-              <ChevronIcon direction="left" />
+              <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
             </button>
             <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">
               {viewMode === 'yearly' ? `${year}년` : `${year}년 ${month}월`}
@@ -212,7 +212,7 @@ export default function StatsClient({ currentUserId }: Props) {
               disabled={viewMode === 'yearly' ? isCurrentYear : isCurrentMonth}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300 disabled:opacity-30"
             >
-              <ChevronIcon direction="right" />
+              <ChevronRight className="w-5 h-5" strokeWidth={2.5} />
             </button>
           </div>
 
@@ -294,7 +294,7 @@ function MonthlyContent({
   if (grandExpense === 0 && grandIncome === 0) {
     return (
       <div className="text-center py-20 text-gray-400 dark:text-gray-500">
-        <div className="text-4xl mb-3">📊</div>
+        <BarChart3 className="w-10 h-10 mx-auto mb-3" strokeWidth={1.5} />
         <p className="text-sm">이번 달 내역이 없어요</p>
       </div>
     )
@@ -413,32 +413,49 @@ function YearlyContent({ monthRows, yearlyIncome, yearlyExpense, year }: {
   if (!hasData) {
     return (
       <div className="text-center py-20 text-gray-400 dark:text-gray-500">
-        <div className="text-4xl mb-3">📅</div>
+        <CalendarDays className="w-10 h-10 mx-auto mb-3" strokeWidth={1.5} />
         <p className="text-sm">{year}년 내역이 없어요</p>
       </div>
     )
   }
 
-  const maxExpense = Math.max(...monthRows.map((r) => r.expense))
+  const maxValue = Math.max(...monthRows.map((r) => Math.max(r.income, r.expense)), 1)
 
   return (
     <div className="space-y-4">
       {/* 막대 차트 */}
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-5">
-        <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100 mb-4">월별 지출 추이</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100">월별 소득·지출 추이</h2>
+          <div className="flex items-center gap-3 text-[11px] text-gray-500 dark:text-gray-400">
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-blue-400" />소득
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-red-400" />지출
+            </span>
+          </div>
+        </div>
         <div className="flex items-end gap-1.5 h-24">
           {monthRows.map((row) => {
             const isFuture = year === nowYear && row.month > nowMonth
-            const heightPct = maxExpense > 0 ? (row.expense / maxExpense) * 100 : 0
             const isCurrentM = year === nowYear && row.month === nowMonth
+            const incomePct = (row.income / maxValue) * 100
+            const expensePct = (row.expense / maxValue) * 100
             return (
               <div key={row.month} className="flex-1 flex flex-col items-center gap-1">
-                <div className="w-full flex items-end" style={{ height: '80px' }}>
+                <div className="w-full flex items-end justify-center gap-[3px]" style={{ height: '80px' }}>
                   <div
-                    className={`w-full rounded-t-md transition-all duration-500 ${
-                      isFuture ? 'bg-gray-100 dark:bg-gray-800' : isCurrentM ? 'bg-blue-400' : 'bg-gray-300 dark:bg-gray-600'
+                    className={`flex-1 rounded-t-md transition-all duration-500 ${
+                      isFuture ? 'bg-gray-100 dark:bg-gray-800' : isCurrentM ? 'bg-blue-500 dark:bg-blue-400' : 'bg-blue-200 dark:bg-blue-500/40'
                     }`}
-                    style={{ height: isFuture ? '4px' : `${Math.max(heightPct, row.expense > 0 ? 4 : 0)}%` }}
+                    style={{ height: isFuture ? '4px' : `${Math.max(incomePct, row.income > 0 ? 4 : 0)}%` }}
+                  />
+                  <div
+                    className={`flex-1 rounded-t-md transition-all duration-500 ${
+                      isFuture ? 'bg-gray-100 dark:bg-gray-800' : isCurrentM ? 'bg-red-500 dark:bg-red-400' : 'bg-red-200 dark:bg-red-500/40'
+                    }`}
+                    style={{ height: isFuture ? '4px' : `${Math.max(expensePct, row.expense > 0 ? 4 : 0)}%` }}
                   />
                 </div>
                 <span className={`text-[10px] ${isCurrentM ? 'text-blue-500 dark:text-blue-400 font-semibold' : 'text-gray-400 dark:text-gray-500'}`}>
@@ -596,7 +613,7 @@ function DailyContent({
 
       {!hasAnyData && (
         <div className="text-center py-10 text-gray-400 dark:text-gray-500">
-          <div className="text-4xl mb-2">📅</div>
+          <CalendarDays className="w-10 h-10 mx-auto mb-2" strokeWidth={1.5} />
           <p className="text-sm">이번 달 내역이 없어요</p>
         </div>
       )}

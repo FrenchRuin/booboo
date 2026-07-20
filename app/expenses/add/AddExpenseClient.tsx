@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
-import ChevronIcon from '@/components/ChevronIcon'
+import { ChevronLeft, Wallet, PiggyBank } from 'lucide-react'
 import { FormSkeleton, Spinner } from '@/components/Skeleton'
 import type { Category, IncomeCategory, Profile } from '@/types'
 
@@ -128,7 +128,7 @@ function AddExpenseForm({ currentUserId }: Props) {
             onClick={() => router.back()}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
           >
-            <ChevronIcon direction="left" />
+            <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
           </button>
           <h1 className="text-lg font-bold text-gray-900 dark:text-gray-50">
             {isEdit ? '내역 수정' : '내역 추가'}
@@ -146,20 +146,20 @@ function AddExpenseForm({ currentUserId }: Props) {
               <button
                 type="button"
                 onClick={() => handleTypeChange('expense')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
                   entryType === 'expense' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50 shadow-sm' : 'text-gray-500 dark:text-gray-400'
                 }`}
               >
-                💳 지출
+                <Wallet className="w-4 h-4" /> 지출
               </button>
               <button
                 type="button"
                 onClick={() => handleTypeChange('income')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
                   entryType === 'income' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50 shadow-sm' : 'text-gray-500 dark:text-gray-400'
                 }`}
               >
-                💰 소득
+                <PiggyBank className="w-4 h-4" /> 소득
               </button>
             </div>
 

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { Heart, MailCheck } from 'lucide-react'
 
 type Mode = 'password' | 'magic'
 
@@ -50,7 +51,9 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[#F7F8FA] dark:bg-[#0A0E14] flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="text-5xl mb-3">💑</div>
+          <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center">
+            <Heart className="w-7 h-7 text-blue-500 dark:text-blue-400" fill="currentColor" strokeWidth={0} />
+          </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-50">우리 가계부</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">둘이서 함께 쓰는 가계부</p>
         </div>
@@ -118,7 +121,7 @@ export default function LoginPage() {
           {mode === 'magic' && (
             sent ? (
               <div className="text-center py-4">
-                <div className="text-4xl mb-3">📬</div>
+                <MailCheck className="w-9 h-9 mx-auto mb-3 text-blue-500 dark:text-blue-400" strokeWidth={1.5} />
                 <p className="font-medium text-gray-900 dark:text-gray-50">이메일을 확인해주세요</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   <span className="font-medium text-gray-700 dark:text-gray-200">{email}</span>으로<br />

@@ -4,14 +4,14 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
-import ChevronIcon from '@/components/ChevronIcon'
 import { Spinner } from '@/components/Skeleton'
 import { type ThemeMode, getStoredTheme, setTheme } from '@/lib/theme'
+import { ChevronRight, User, Check, Sun, Moon, Monitor, type LucideIcon } from 'lucide-react'
 
-const THEME_OPTIONS: { mode: ThemeMode; label: string; icon: string }[] = [
-  { mode: 'light', label: '라이트', icon: '☀️' },
-  { mode: 'dark', label: '다크', icon: '🌙' },
-  { mode: 'system', label: '시스템', icon: '⚙️' },
+const THEME_OPTIONS: { mode: ThemeMode; label: string; Icon: LucideIcon }[] = [
+  { mode: 'light', label: '라이트', Icon: Sun },
+  { mode: 'dark', label: '다크', Icon: Moon },
+  { mode: 'system', label: '시스템', Icon: Monitor },
 ]
 
 type Props = {
@@ -161,7 +161,7 @@ export default function ProfileClient({ userId, email }: Props) {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={currentAvatar} alt="프로필 사진" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-4xl">👤</span>
+                  <User className="w-10 h-10 text-gray-400 dark:text-gray-500" strokeWidth={1.5} />
                 )}
               </div>
               <div className="absolute inset-0 rounded-full bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -204,7 +204,11 @@ export default function ProfileClient({ userId, email }: Props) {
               className="px-4 py-2.5 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-xl text-sm font-medium hover:bg-gray-700 dark:hover:bg-gray-300 transition-colors disabled:opacity-50 whitespace-nowrap flex items-center justify-center gap-2"
             >
               {nameSaving && <Spinner />}
-              {nameSaving ? '저장 중' : nameSuccess ? '✓ 저장됨' : '저장'}
+              {nameSaving ? '저장 중' : nameSuccess ? (
+                <span className="inline-flex items-center gap-1">
+                  <Check className="w-3.5 h-3.5" strokeWidth={2.5} /> 저장됨
+                </span>
+              ) : '저장'}
             </button>
           </div>
         </div>
@@ -219,25 +223,25 @@ export default function ProfileClient({ userId, email }: Props) {
           className="w-full bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
         >
           <span className="text-sm font-medium text-gray-900 dark:text-gray-50">카테고리 관리</span>
-          <ChevronIcon direction="right" className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+          <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500" strokeWidth={2.5} />
         </button>
 
         {/* 화면 테마 */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-5">
           <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">화면 테마</p>
           <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
-            {THEME_OPTIONS.map(({ mode, label, icon }) => (
+            {THEME_OPTIONS.map(({ mode, label, Icon }) => (
               <button
                 key={mode}
                 type="button"
                 onClick={() => handleThemeChange(mode)}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
                   themeMode === mode
                     ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50 shadow-sm'
                     : 'text-gray-500 dark:text-gray-400'
                 }`}
               >
-                {icon} {label}
+                <Icon className="w-4 h-4" strokeWidth={2} /> {label}
               </button>
             ))}
           </div>

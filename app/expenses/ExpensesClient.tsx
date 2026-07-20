@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
 import ExpenseList from '@/components/ExpenseList'
-import ChevronIcon from '@/components/ChevronIcon'
+import { ChevronLeft, ChevronRight, Repeat } from 'lucide-react'
 
 type Props = {
   currentUserId: string
@@ -69,7 +69,7 @@ export default function ExpensesClient({ currentUserId }: Props) {
               onClick={prevMonth}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
             >
-              <ChevronIcon direction="left" />
+              <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
             </button>
             <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">{year}년 {month}월</span>
             <button
@@ -77,7 +77,7 @@ export default function ExpensesClient({ currentUserId }: Props) {
               disabled={isCurrentMonth}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300 disabled:opacity-30"
             >
-              <ChevronIcon direction="right" />
+              <ChevronRight className="w-5 h-5" strokeWidth={2.5} />
             </button>
           </div>
 
@@ -113,7 +113,7 @@ export default function ExpensesClient({ currentUserId }: Props) {
               onClick={() => router.push(`/recurring/apply?year=${year}&month=${month}`)}
               className="flex items-center gap-1 text-xs text-blue-500 dark:text-blue-400 font-medium px-2.5 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"
             >
-              🔁 고정비
+              <Repeat className="w-3.5 h-3.5" strokeWidth={2.5} /> 고정비
             </button>
           </div>
         </div>

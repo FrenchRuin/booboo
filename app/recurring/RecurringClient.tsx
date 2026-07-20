@@ -6,6 +6,7 @@ import BottomNav from '@/components/BottomNav'
 import CategoryBadge from '@/components/CategoryBadge'
 import { Dialog, useConfirm } from '@/components/Dialog'
 import { CardListSkeleton, Spinner } from '@/components/Skeleton'
+import { Wallet, PiggyBank, ClipboardList, X } from 'lucide-react'
 import type { Category, IncomeCategory, Profile, RecurringExpense } from '@/types'
 
 type Props = {
@@ -156,13 +157,14 @@ export default function RecurringClient({ currentUserId }: Props) {
                     key={t}
                     type="button"
                     onClick={() => { setFormType(t); setFormCategoryId(null) }}
-                    className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1 ${
                       formType === t
                         ? t === 'expense' ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900' : 'bg-green-600 text-white'
                         : 'text-gray-500 dark:text-gray-400'
                     }`}
                   >
-                    {t === 'expense' ? '💳 지출' : '💰 소득'}
+                    {t === 'expense' ? <Wallet className="w-3.5 h-3.5" /> : <PiggyBank className="w-3.5 h-3.5" />}
+                    {t === 'expense' ? '지출' : '소득'}
                   </button>
                 ))}
               </div>
@@ -313,7 +315,7 @@ export default function RecurringClient({ currentUserId }: Props) {
           <CardListSkeleton />
         ) : items.length === 0 && !showAddForm ? (
           <div className="text-center py-20">
-            <p className="text-4xl mb-3">📋</p>
+            <ClipboardList className="w-10 h-10 mx-auto mb-3 text-gray-300 dark:text-gray-600" strokeWidth={1.5} />
             <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">등록된 고정비가 없어요</p>
             <button
               onClick={() => setShowAddForm(true)}
@@ -354,7 +356,7 @@ export default function RecurringClient({ currentUserId }: Props) {
                       onClick={() => handleDelete(item.id)}
                       className="text-gray-300 dark:text-gray-600 hover:text-red-400 dark:hover:text-red-300 transition-colors p-1 flex-shrink-0"
                     >
-                      ✕
+                      <X className="w-3.5 h-3.5" strokeWidth={2.5} />
                     </button>
                   )}
                 </div>

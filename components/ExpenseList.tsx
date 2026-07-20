@@ -7,6 +7,7 @@ import CategoryBadge from '@/components/CategoryBadge'
 import PersonAvatar from '@/components/PersonAvatar'
 import { Dialog, useConfirm } from '@/components/Dialog'
 import { EntryListSkeleton } from '@/components/Skeleton'
+import { Wallet, PiggyBank, Receipt, X } from 'lucide-react'
 import type { Expense, Income, Profile } from '@/types'
 
 type EntryType = 'expense' | 'income'
@@ -154,7 +155,14 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
               typeFilter === type ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50 shadow-sm' : 'text-gray-500 dark:text-gray-400'
             }`}
           >
-            {type === 'all' ? '전체' : type === 'expense' ? '💳 지출' : '💰 소득'}
+            {type === 'all' ? (
+              '전체'
+            ) : (
+              <span className="inline-flex items-center gap-1">
+                {type === 'expense' ? <Wallet className="w-3.5 h-3.5" /> : <PiggyBank className="w-3.5 h-3.5" />}
+                {type === 'expense' ? '지출' : '소득'}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -191,7 +199,7 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
       {/* 리스트 */}
       {Object.keys(grouped).length === 0 ? (
         <div className="text-center py-16 text-gray-400 dark:text-gray-500">
-          <div className="text-4xl mb-2">🧾</div>
+          <Receipt className="w-10 h-10 mx-auto mb-2" strokeWidth={1.5} />
           <p className="text-sm">해당하는 내역이 없어요</p>
         </div>
       ) : (
@@ -261,10 +269,10 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
                         </span>
                         <button
                           onClick={(e) => { e.stopPropagation(); handleDelete(entry.id, entry._type) }}
-                          className="text-gray-300 dark:text-gray-600 hover:text-red-400 dark:hover:text-red-300 transition-colors text-xs p-1"
+                          className="text-gray-300 dark:text-gray-600 hover:text-red-400 dark:hover:text-red-300 transition-colors p-1"
                           aria-label="삭제"
                         >
-                          ✕
+                          <X className="w-3.5 h-3.5" strokeWidth={2.5} />
                         </button>
                       </div>
                     </div>

@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Dialog, useConfirm } from '@/components/Dialog'
 import CategoryBadge from '@/components/CategoryBadge'
-import ChevronIcon from '@/components/ChevronIcon'
 import { CardListSkeleton, Spinner } from '@/components/Skeleton'
+import { ChevronLeft, Wallet, PiggyBank, Palette } from 'lucide-react'
 import type { Category, IncomeCategory } from '@/types'
 
 type CategoryType = 'expense' | 'income'
@@ -143,8 +143,8 @@ export default function CategoriesClient() {
               aria-label={c}
             />
           ))}
-          <label className="w-7 h-7 rounded-full flex-shrink-0 border border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-400 dark:text-gray-500 cursor-pointer relative overflow-hidden text-xs">
-            🎨
+          <label className="w-7 h-7 rounded-full flex-shrink-0 border border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-400 dark:text-gray-500 cursor-pointer relative overflow-hidden">
+            <Palette className="w-3.5 h-3.5" strokeWidth={2} />
             <input
               type="color"
               value={form.color}
@@ -190,7 +190,7 @@ export default function CategoriesClient() {
             onClick={() => router.back()}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
           >
-            <ChevronIcon direction="left" />
+            <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
           </button>
           <h1 className="text-lg font-bold text-gray-900 dark:text-gray-50">카테고리 관리</h1>
         </div>
@@ -204,11 +204,12 @@ export default function CategoriesClient() {
               key={t}
               type="button"
               onClick={() => { setType(t); resetForm() }}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
                 type === t ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50 shadow-sm' : 'text-gray-500 dark:text-gray-400'
               }`}
             >
-              {t === 'expense' ? '💳 지출 유형' : '💰 소득 유형'}
+              {t === 'expense' ? <Wallet className="w-4 h-4" /> : <PiggyBank className="w-4 h-4" />}
+              {t === 'expense' ? '지출 유형' : '소득 유형'}
             </button>
           ))}
         </div>
