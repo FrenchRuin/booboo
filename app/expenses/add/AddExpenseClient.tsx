@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
+import ChevronIcon from '@/components/ChevronIcon'
 import { FormSkeleton, Spinner } from '@/components/Skeleton'
 import type { Category, IncomeCategory, Profile } from '@/types'
 
@@ -124,9 +125,9 @@ function AddExpenseForm({ currentUserId }: Props) {
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 text-xl"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-600"
           >
-            ‹
+            <ChevronIcon direction="left" />
           </button>
           <h1 className="text-lg font-bold text-gray-900">
             {isEdit ? '내역 수정' : '내역 추가'}

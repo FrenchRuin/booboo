@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
 import CategoryBadge from '@/components/CategoryBadge'
+import ChevronIcon from '@/components/ChevronIcon'
 import { CardListSkeleton, Spinner } from '@/components/Skeleton'
 import type { Profile, RecurringExpense, Category, IncomeCategory } from '@/types'
 
@@ -134,9 +135,9 @@ function ApplyForm({ currentUserId }: Props) {
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 text-xl"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-600"
           >
-            ‹
+            <ChevronIcon direction="left" />
           </button>
           <div>
             <h1 className="text-lg font-bold text-gray-900">고정비 적용</h1>

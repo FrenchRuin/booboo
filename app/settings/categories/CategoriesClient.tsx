@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Dialog, useConfirm } from '@/components/Dialog'
 import CategoryBadge from '@/components/CategoryBadge'
+import ChevronIcon from '@/components/ChevronIcon'
 import { CardListSkeleton, Spinner } from '@/components/Skeleton'
 import type { Category, IncomeCategory } from '@/types'
 
@@ -112,9 +113,9 @@ export default function CategoriesClient() {
         <div className="max-w-lg mx-auto flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 text-xl"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-600"
           >
-            ‹
+            <ChevronIcon direction="left" />
           </button>
           <h1 className="text-lg font-bold text-gray-900">카테고리 관리</h1>
         </div>

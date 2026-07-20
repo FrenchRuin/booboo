@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
+import ChevronIcon from '@/components/ChevronIcon'
 import { Spinner } from '@/components/Skeleton'
 
 type Props = {
@@ -200,7 +201,7 @@ export default function ProfileClient({ userId, email }: Props) {
           className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center justify-between hover:bg-gray-50 transition-colors"
         >
           <span className="text-sm font-medium text-gray-900">지출/소득 유형 관리</span>
-          <span className="text-gray-300">›</span>
+          <ChevronIcon direction="right" className="w-4 h-4 text-gray-400" />
         </button>
 
         {/* 로그아웃 */}

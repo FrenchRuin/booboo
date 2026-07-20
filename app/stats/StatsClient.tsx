@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
 import PersonAvatar from '@/components/PersonAvatar'
+import ChevronIcon from '@/components/ChevronIcon'
 import { StatsContentSkeleton } from '@/components/Skeleton'
 import type { Category, IncomeCategory, Profile, Expense, Income } from '@/types'
 
@@ -156,9 +157,9 @@ export default function StatsClient({ currentUserId }: Props) {
                   setYear(y => y - 1)
                 }
               }}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 text-xl"
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-600"
             >
-              ‹
+              <ChevronIcon direction="left" />
             </button>
             <span className="text-sm font-semibold text-gray-500">
               {viewMode === 'monthly' ? `${year}년 ${month}월` : `${year}년`}
@@ -174,9 +175,9 @@ export default function StatsClient({ currentUserId }: Props) {
                 }
               }}
               disabled={viewMode === 'monthly' ? isCurrentMonth : isCurrentYear}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 text-xl disabled:opacity-30"
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-600 disabled:opacity-30"
             >
-              ›
+              <ChevronIcon direction="right" />
             </button>
           </div>
 
