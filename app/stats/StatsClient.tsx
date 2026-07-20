@@ -4,17 +4,24 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
 import PersonAvatar from '@/components/PersonAvatar'
+import CategoryBadge from '@/components/CategoryBadge'
 import ChevronIcon from '@/components/ChevronIcon'
 import { StatsContentSkeleton } from '@/components/Skeleton'
 import type { Category, IncomeCategory, Profile, Expense, Income } from '@/types'
 
 type Props = { currentUserId: string }
-type ViewMode = 'monthly' | 'yearly'
+type ViewMode = 'monthly' | 'daily' | 'yearly'
 
 type CategoryStat = { category: Category; total: number; count: number }
 type IncomeCategoryStat = { category: IncomeCategory; total: number; count: number }
 type PersonStat = { profile: Profile; expenseTotal: number; incomeTotal: number }
 type MonthRow = { month: number; income: number; expense: number; balance: number }
+type DayStat = { income: number; expense: number }
+type DayEntry =
+  | { id: string; type: 'expense'; amount: number; note: string | null; category: Category | undefined }
+  | { id: string; type: 'income'; amount: number; note: string | null; category: IncomeCategory | undefined }
+
+const VIEW_MODE_LABEL: Record<ViewMode, string> = { monthly: '월별', daily: '일별', yearly: '연별' }
 
 export default function StatsClient({ currentUserId }: Props) {
   const now = new Date()
@@ -31,6 +38,10 @@ export default function StatsClient({ currentUserId }: Props) {
   const [monthRows, setMonthRows] = useState<MonthRow[]>([])
   const [yearlyIncome, setYearlyIncome] = useState(0)
   const [yearlyExpense, setYearlyExpense] = useState(0)
+
+  const [dayStats, setDayStats] = useState<Record<string, DayStat>>({})
+  const [dayEntries, setDayEntries] = useState<Record<string, DayEntry[]>>({})
+  const [selectedDay, setSelectedDay] = useState<string | null>(null)
 
   const [loading, setLoading] = useState(true)
 
@@ -84,6 +95,24 @@ export default function StatsClient({ currentUserId }: Props) {
     incomes.forEach((e) => { ensurePerson(e.received_by); const p = personMap.get(e.received_by); if (p) p.incomeTotal += e.amount })
     setPersonStats(Array.from(personMap.values()))
 
+    const dMap: Record<string, DayStat> = {}
+    const eMap: Record<string, DayEntry[]> = {}
+    const touchDay = (date: string) => {
+      if (!dMap[date]) dMap[date] = { income: 0, expense: 0 }
+      if (!eMap[date]) eMap[date] = []
+      return dMap[date]
+    }
+    expenses.forEach((e) => {
+      touchDay(e.date).expense += e.amount
+      eMap[e.date].push({ id: e.id, type: 'expense', amount: e.amount, note: e.note, category: e.categories })
+    })
+    incomes.forEach((e) => {
+      touchDay(e.date).income += e.amount
+      eMap[e.date].push({ id: e.id, type: 'income', amount: e.amount, note: e.note, category: e.income_categories })
+    })
+    setDayStats(dMap)
+    setDayEntries(eMap)
+
     setLoading(false)
   }, [year, month])
 
@@ -117,24 +146,29 @@ export default function StatsClient({ currentUserId }: Props) {
   }, [year])
 
   useEffect(() => {
-    if (viewMode === 'monthly') fetchMonthly()
-    else fetchYearly()
+    if (viewMode === 'yearly') fetchYearly()
+    else fetchMonthly()
   }, [viewMode, fetchMonthly, fetchYearly])
 
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1
   const isCurrentYear = year === now.getFullYear()
 
-  const displayIncome = viewMode === 'monthly' ? grandIncome : yearlyIncome
-  const displayExpense = viewMode === 'monthly' ? grandExpense : yearlyExpense
+  useEffect(() => {
+    const todayStr = now.toISOString().split('T')[0]
+    setSelectedDay(isCurrentMonth ? todayStr : null)
+  }, [year, month, isCurrentMonth])
+
+  const displayIncome = viewMode === 'yearly' ? yearlyIncome : grandIncome
+  const displayExpense = viewMode === 'yearly' ? yearlyExpense : grandExpense
   const displayBalance = displayIncome - displayExpense
 
   return (
     <div className="flex flex-col h-full">
       <header className="bg-white px-5 pt-12 pb-5 shadow-[0_1px_0_0_#F0F0F0]">
         <div className="max-w-lg mx-auto">
-          {/* 월별 / 연별 탭 */}
+          {/* 월별 / 일별 / 연별 탭 */}
           <div className="flex bg-gray-100 rounded-xl p-1 mb-5">
-            {(['monthly', 'yearly'] as ViewMode[]).map((mode) => (
+            {(['monthly', 'daily', 'yearly'] as ViewMode[]).map((mode) => (
               <button
                 key={mode}
                 onClick={() => setViewMode(mode)}
@@ -142,7 +176,7 @@ export default function StatsClient({ currentUserId }: Props) {
                   viewMode === mode ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
                 }`}
               >
-                {mode === 'monthly' ? '월별' : '연별'}
+                {VIEW_MODE_LABEL[mode]}
               </button>
             ))}
           </div>
@@ -151,10 +185,10 @@ export default function StatsClient({ currentUserId }: Props) {
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={() => {
-                if (viewMode === 'monthly') {
-                  if (month === 1) { setYear(y => y - 1); setMonth(12) } else setMonth(m => m - 1)
-                } else {
+                if (viewMode === 'yearly') {
                   setYear(y => y - 1)
+                } else {
+                  if (month === 1) { setYear(y => y - 1); setMonth(12) } else setMonth(m => m - 1)
                 }
               }}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-600"
@@ -162,19 +196,19 @@ export default function StatsClient({ currentUserId }: Props) {
               <ChevronIcon direction="left" />
             </button>
             <span className="text-sm font-semibold text-gray-500">
-              {viewMode === 'monthly' ? `${year}년 ${month}월` : `${year}년`}
+              {viewMode === 'yearly' ? `${year}년` : `${year}년 ${month}월`}
             </span>
             <button
               onClick={() => {
-                if (viewMode === 'monthly') {
+                if (viewMode === 'yearly') {
+                  setYear(y => y + 1)
+                } else {
                   const n = new Date(year, month)
                   if (n > new Date()) return
                   if (month === 12) { setYear(y => y + 1); setMonth(1) } else setMonth(m => m + 1)
-                } else {
-                  setYear(y => y + 1)
                 }
               }}
-              disabled={viewMode === 'monthly' ? isCurrentMonth : isCurrentYear}
+              disabled={viewMode === 'yearly' ? isCurrentYear : isCurrentMonth}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors text-gray-600 disabled:opacity-30"
             >
               <ChevronIcon direction="right" />
@@ -184,7 +218,7 @@ export default function StatsClient({ currentUserId }: Props) {
           {/* 잔액 요약 */}
           <div className="mb-4">
             <p className="text-xs text-gray-400 font-medium mb-1">
-              {viewMode === 'monthly' ? '이번 달 잔액' : `${year}년 잔액`}
+              {viewMode === 'yearly' ? `${year}년 잔액` : '이번 달 잔액'}
             </p>
             <p className={`text-3xl font-bold tracking-tight ${displayBalance >= 0 ? 'text-gray-900' : 'text-red-500'}`}>
               {displayBalance >= 0 ? '+' : ''}{displayBalance.toLocaleString('ko-KR')}
@@ -220,6 +254,15 @@ export default function StatsClient({ currentUserId }: Props) {
             incomeCategoryStats={incomeCategoryStats}
             personStats={personStats}
             currentUserId={currentUserId}
+          />
+        ) : viewMode === 'daily' ? (
+          <DailyContent
+            year={year}
+            month={month}
+            dayStats={dayStats}
+            dayEntries={dayEntries}
+            selectedDay={selectedDay}
+            onSelectDay={setSelectedDay}
           />
         ) : (
           <YearlyContent
@@ -452,6 +495,150 @@ function YearlyContent({ monthRows, yearlyIncome, yearlyExpense, year }: {
           </span>
         </div>
       </div>
+    </div>
+  )
+}
+
+function compactAmount(n: number) {
+  if (n >= 100000000) {
+    const eok = n / 100000000
+    return `${Number.isInteger(eok) ? eok : eok.toFixed(1)}억`
+  }
+  if (n >= 10000) {
+    const man = n / 10000
+    return `${Number.isInteger(man) ? man : man.toFixed(1)}만`
+  }
+  return n.toLocaleString('ko-KR')
+}
+
+function DailyContent({
+  year, month, dayStats, dayEntries, selectedDay, onSelectDay,
+}: {
+  year: number
+  month: number
+  dayStats: Record<string, DayStat>
+  dayEntries: Record<string, DayEntry[]>
+  selectedDay: string | null
+  onSelectDay: (date: string) => void
+}) {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const firstWeekday = new Date(year, month - 1, 1).getDay()
+  const daysInMonth = new Date(year, month, 0).getDate()
+  const todayStr = new Date().toISOString().split('T')[0]
+
+  const cells: (number | null)[] = []
+  for (let i = 0; i < firstWeekday; i++) cells.push(null)
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d)
+  while (cells.length % 7 !== 0) cells.push(null)
+
+  const hasAnyData = Object.keys(dayStats).length > 0
+  const selectedEntries = selectedDay ? (dayEntries[selectedDay] ?? []) : []
+  const selectedStat = selectedDay ? dayStats[selectedDay] : undefined
+
+  const formatDayLabel = (dateStr: string) => {
+    const d = new Date(dateStr + 'T00:00:00')
+    return d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' })
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* 캘린더 */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+        <div className="grid grid-cols-7 mb-2">
+          {['일', '월', '화', '수', '목', '금', '토'].map((d, i) => (
+            <div
+              key={d}
+              className={`text-center text-[11px] font-medium ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-gray-400'}`}
+            >
+              {d}
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1">
+          {cells.map((day, idx) => {
+            if (day === null) return <div key={idx} />
+            const dateStr = `${year}-${pad(month)}-${pad(day)}`
+            const stat = dayStats[dateStr]
+            const isToday = dateStr === todayStr
+            const isSelected = selectedDay === dateStr
+            const isFuture = dateStr > todayStr
+
+            return (
+              <button
+                key={idx}
+                onClick={() => onSelectDay(dateStr)}
+                className={`aspect-square rounded-lg flex flex-col items-center justify-center gap-px transition-colors ${
+                  isSelected ? 'bg-blue-500' : isToday ? 'bg-blue-50' : 'hover:bg-gray-50'
+                }`}
+              >
+                <span className={`text-[11px] font-medium ${
+                  isSelected ? 'text-white' : isFuture ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  {day}
+                </span>
+                {stat?.income ? (
+                  <span className={`text-[8px] leading-none ${isSelected ? 'text-white' : 'text-blue-500'}`}>
+                    +{compactAmount(stat.income)}
+                  </span>
+                ) : null}
+                {stat?.expense ? (
+                  <span className={`text-[8px] leading-none ${isSelected ? 'text-white' : 'text-red-500'}`}>
+                    -{compactAmount(stat.expense)}
+                  </span>
+                ) : null}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {!hasAnyData && (
+        <div className="text-center py-10 text-gray-400">
+          <div className="text-4xl mb-2">📅</div>
+          <p className="text-sm">이번 달 내역이 없어요</p>
+        </div>
+      )}
+
+      {/* 선택한 날 상세 */}
+      {selectedDay && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold text-gray-800">{formatDayLabel(selectedDay)}</h2>
+            {selectedStat && (selectedStat.income > 0 || selectedStat.expense > 0) && (
+              <div className="flex gap-2 text-xs">
+                {selectedStat.income > 0 && (
+                  <span className="text-blue-500 font-medium">+{selectedStat.income.toLocaleString('ko-KR')}원</span>
+                )}
+                {selectedStat.expense > 0 && (
+                  <span className="text-red-500 font-medium">-{selectedStat.expense.toLocaleString('ko-KR')}원</span>
+                )}
+              </div>
+            )}
+          </div>
+
+          {selectedEntries.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-6">내역이 없어요</p>
+          ) : (
+            <div className="space-y-2">
+              {selectedEntries.map((entry) => (
+                <div key={entry.id} className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    {entry.category ? (
+                      <CategoryBadge category={entry.category} size="sm" />
+                    ) : (
+                      <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 bg-gray-100 text-gray-500">기타</span>
+                    )}
+                    {entry.note && <span className="text-xs text-gray-400 truncate">{entry.note}</span>}
+                  </div>
+                  <span className={`text-sm font-semibold flex-shrink-0 ${entry.type === 'income' ? 'text-blue-600' : 'text-gray-900'}`}>
+                    {entry.type === 'income' ? '+' : '-'}{entry.amount.toLocaleString('ko-KR')}원
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
