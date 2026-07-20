@@ -196,12 +196,12 @@ export default function ProfileClient({ userId, email }: Props) {
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               maxLength={20}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-400 text-gray-900 dark:text-gray-50"
+              className="flex-1 min-w-0 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-400 text-gray-900 dark:text-gray-50"
             />
             <button
               onClick={handleNameSave}
               disabled={nameSaving}
-              className="px-4 py-2.5 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-xl text-sm font-medium hover:bg-gray-700 dark:hover:bg-gray-300 transition-colors disabled:opacity-50 whitespace-nowrap flex items-center justify-center gap-2"
+              className="px-4 py-2.5 flex-shrink-0 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 rounded-xl text-sm font-medium hover:bg-gray-700 dark:hover:bg-gray-300 transition-colors disabled:opacity-50 whitespace-nowrap flex items-center justify-center gap-2"
             >
               {nameSaving && <Spinner />}
               {nameSaving ? '저장 중' : nameSuccess ? (

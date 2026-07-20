@@ -82,6 +82,8 @@ npm run lint       # 린트
 
 - **avatar_url은 DB에 순수 URL만 저장**: 캐시 무효화용 `?t=timestamp`는 DB에 저장하지 말 것. 표시할 때만 URL에 붙여서 사용.
 
+- **`middleware.ts`의 인증 리다이렉트는 `/api/` 경로를 제외해야 함**: 로그인 안 된 상태로 API 라우트를 fetch하면 미들웨어가 `/login`으로 307 리다이렉트를 시켜버려서, 클라이언트는 JSON 대신 로그인 페이지 HTML을 받게 됨. `/api/`로 시작하는 경로는 리다이렉트 대신 `NextResponse.json({ error: ... }, { status: 401 })`로 처리하고, 실제 인증 체크는 각 라우트 핸들러 안에서 `supabase.auth.getUser()`로 따로 함.
+
 ## 환경 & 세팅 관련
 
 - **Next.js 버전**: 현재 **15.3.9** 사용 중. Next.js 16은 Windows에서 Turbopack 실행 시 `0xc0000142` 에러로 크래시 → 다운그레이드 유지.
@@ -97,6 +99,20 @@ npm run lint       # 린트
 - **환경변수는 Vercel에 별도 등록 필요**: `.env.local`은 로컬 전용. Vercel 배포 시 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`를 Vercel 대시보드 또는 `npx vercel env add`로 추가해야 함. 추가 후 재배포 필요.
 
 - **`git push` → 자동 재배포**: Vercel 프로젝트 연결 후 GitHub push 시 자동으로 재배포됨. 수동 배포 불필요.
+
+## 구글시트 연동 관련 (`lib/google-sheets.ts`)
+
+- **서비스 계정 키 발급이 조직 정책으로 막힐 수 있음**: `iam.disableServiceAccountKeyCreation` 정책 때문에 "서비스 계정 키를 만들 수 없습니다" 에러가 남 (개인 구글 계정이어도 최근 생성된 프로젝트엔 보안 기본값으로 걸려있는 경우가 많음). 조직 정책 관리자 권한 없이는 못 풂. → **서비스 계정 대신 OAuth(클라이언트 ID/보안비밀 + refresh token) 방식 사용.** 시트를 서비스 계정과 공유할 필요도 없어짐 (본인 계정 소유 시트 그대로 사용).
+
+- **OAuth 동의 화면이 "테스트" 상태면 등록된 테스트 사용자만 로그인 가능**: 테스트 사용자로 등록 안 된 계정으로 인증 시도하면 "현재 테스트 중이며 승인된 테스터만 액세스 가능" (`access_denied`) 에러. OAuth 동의 화면 > 테스트 사용자에 실제 로그인할 구글 계정 이메일을 미리 추가해야 함.
+
+- **refresh token은 OAuth Playground(https://developers.google.com/oauthplayground)로 발급받는 게 제일 간단함**: 별도 스크립트 없이, 설정에서 "Use your own OAuth credentials" 체크 후 클라이언트 ID/보안비밀 입력 → Sheets 스코프(`.../auth/spreadsheets`) 선택해서 Authorize → "Exchange authorization code for tokens"로 refresh token 획득. OAuth 클라이언트는 "웹 애플리케이션" 타입으로 만들고 승인된 리디렉션 URI에 OAuth Playground 주소를 등록해둬야 함.
+
+- **⚠️ "테스트" 상태에서 발급한 refresh token은 7일 뒤 만료됨**: OAuth 동의 화면 발행 상태를 Testing → **In production**으로 바꾸면(실제 구글 검증 심사 아님, 그냥 발행 상태 전환) 이 7일 제한이 사라짐. 둘만 쓰는 앱이라 "확인되지 않은 앱" 경고가 떠도 무시하고 진행하면 됨. **발행 상태를 바꾼 뒤에는 refresh token을 다시 발급받아서 교체하는 게 안전.**
+
+- **탭(시트) 이름 = "YYYY년 M월"로 관리**: `exportMonthToGoogleSheet`가 같은 이름의 탭이 있으면 지우고 다시 쓰고, 없으면 새로 만듦. 같은 달을 여러 번 내보내도 중복 탭이 안 생기는 구조.
+
+- **환경변수 4개 필요, 로컬/Vercel 둘 다 등록**: `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REFRESH_TOKEN`, `GOOGLE_SHEET_ID`. `.env.local.example`엔 플레이스홀더만 두고 실제 값은 절대 넣지 않기 (실수로 넣었던 적 있음 — 다행히 이 파일은 `.gitignore`(`​.env*`)에 걸려 커밋된 적 없지만, "example" 파일에 진짜 시크릿을 두는 습관은 위험하니 주의).
 
 ## Supabase 인증 관련
 

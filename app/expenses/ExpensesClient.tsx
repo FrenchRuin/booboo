@@ -164,57 +164,57 @@ export default function ExpensesClient({ currentUserId }: Props) {
             </p>
           </div>
 
-          {/* 소득 / 지출 / 고정비 */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-blue-400" />
-                <span className="text-xs text-gray-400 dark:text-gray-500">소득</span>
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                  {summary.income.toLocaleString('ko-KR')}원
-                </span>
-              </div>
-              <div className="w-px h-3 bg-gray-200 dark:bg-gray-700" />
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-red-400" />
-                <span className="text-xs text-gray-400 dark:text-gray-500">지출</span>
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                  {summary.expense.toLocaleString('ko-KR')}원
-                </span>
-              </div>
+          {/* 소득 / 지출 */}
+          <div className="flex items-center gap-4 mb-3 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" />
+              <span className="text-xs text-gray-400 dark:text-gray-500">소득</span>
+              <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                {summary.income.toLocaleString('ko-KR')}원
+              </span>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleExport}
-                disabled={exporting || !hasData}
-                aria-label="엑셀로 내보내기"
-                className="flex items-center justify-center w-7 h-7 text-gray-500 dark:text-gray-400 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40"
-              >
-                {exporting ? (
-                  <Spinner className="w-3.5 h-3.5 border-2 border-gray-400 dark:border-gray-500 border-t-gray-600 dark:border-t-gray-300" />
-                ) : (
-                  <Download className="w-3.5 h-3.5" strokeWidth={2.5} />
-                )}
-              </button>
-              <button
-                onClick={handleGoogleExport}
-                disabled={sheetExporting || !hasData}
-                aria-label="구글시트로 내보내기"
-                className="flex items-center justify-center w-7 h-7 text-gray-500 dark:text-gray-400 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40"
-              >
-                {sheetExporting ? (
-                  <Spinner className="w-3.5 h-3.5 border-2 border-gray-400 dark:border-gray-500 border-t-gray-600 dark:border-t-gray-300" />
-                ) : (
-                  <FileSpreadsheet className="w-3.5 h-3.5" strokeWidth={2.5} />
-                )}
-              </button>
-              <button
-                onClick={() => router.push(`/recurring/apply?year=${year}&month=${month}`)}
-                className="flex items-center gap-1 text-xs text-blue-500 dark:text-blue-400 font-medium px-2.5 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"
-              >
-                <Repeat className="w-3.5 h-3.5" strokeWidth={2.5} /> 고정비
-              </button>
+            <div className="w-px h-3 bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="w-2 h-2 rounded-full bg-red-400 flex-shrink-0" />
+              <span className="text-xs text-gray-400 dark:text-gray-500">지출</span>
+              <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                {summary.expense.toLocaleString('ko-KR')}원
+              </span>
             </div>
+          </div>
+
+          {/* 내보내기 / 고정비 */}
+          <div className="flex items-center justify-end gap-2">
+            <button
+              onClick={handleExport}
+              disabled={exporting || !hasData}
+              aria-label="엑셀로 내보내기"
+              className="flex items-center justify-center w-7 h-7 flex-shrink-0 text-gray-500 dark:text-gray-400 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40"
+            >
+              {exporting ? (
+                <Spinner className="w-3.5 h-3.5 border-2 border-gray-400 dark:border-gray-500 border-t-gray-600 dark:border-t-gray-300" />
+              ) : (
+                <Download className="w-3.5 h-3.5" strokeWidth={2.5} />
+              )}
+            </button>
+            <button
+              onClick={handleGoogleExport}
+              disabled={sheetExporting || !hasData}
+              aria-label="구글시트로 내보내기"
+              className="flex items-center justify-center w-7 h-7 flex-shrink-0 text-gray-500 dark:text-gray-400 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40"
+            >
+              {sheetExporting ? (
+                <Spinner className="w-3.5 h-3.5 border-2 border-gray-400 dark:border-gray-500 border-t-gray-600 dark:border-t-gray-300" />
+              ) : (
+                <FileSpreadsheet className="w-3.5 h-3.5" strokeWidth={2.5} />
+              )}
+            </button>
+            <button
+              onClick={() => router.push(`/recurring/apply?year=${year}&month=${month}`)}
+              className="flex items-center gap-1 flex-shrink-0 text-xs text-blue-500 dark:text-blue-400 font-medium px-2.5 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors whitespace-nowrap"
+            >
+              <Repeat className="w-3.5 h-3.5" strokeWidth={2.5} /> 고정비
+            </button>
           </div>
         </div>
       </header>
