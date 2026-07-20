@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
+import { Spinner } from '@/components/Skeleton'
 
 type Props = {
   userId: string
@@ -181,9 +182,10 @@ export default function ProfileClient({ userId, email }: Props) {
             <button
               onClick={handleNameSave}
               disabled={nameSaving}
-              className="px-4 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 whitespace-nowrap"
+              className="px-4 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50 whitespace-nowrap flex items-center justify-center gap-2"
             >
-              {nameSaving ? '...' : nameSuccess ? '✓ 저장됨' : '저장'}
+              {nameSaving && <Spinner />}
+              {nameSaving ? '저장 중' : nameSuccess ? '✓ 저장됨' : '저장'}
             </button>
           </div>
         </div>
@@ -206,8 +208,9 @@ export default function ProfileClient({ userId, email }: Props) {
           <button
             onClick={handleLogout}
             disabled={logoutLoading}
-            className="w-full py-3 rounded-xl border border-red-200 text-red-500 font-medium text-sm hover:bg-red-50 transition-colors disabled:opacity-50"
+            className="w-full py-3 rounded-xl border border-red-200 text-red-500 font-medium text-sm hover:bg-red-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
+            {logoutLoading && <Spinner className="w-4 h-4 border-2 border-red-300 border-t-red-500" />}
             {logoutLoading ? '로그아웃 중...' : '로그아웃'}
           </button>
         </div>

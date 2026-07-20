@@ -17,6 +17,7 @@ export type IncomeCategory = {
 export type Profile = {
   id: string
   display_name: string
+  avatar_url?: string | null
 }
 
 export type Expense = {

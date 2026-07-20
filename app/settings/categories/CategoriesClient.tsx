@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Dialog, useConfirm } from '@/components/Dialog'
 import CategoryBadge from '@/components/CategoryBadge'
+import { CardListSkeleton, Spinner } from '@/components/Skeleton'
 import type { Category, IncomeCategory } from '@/types'
 
 type CategoryType = 'expense' | 'income'
@@ -180,8 +181,9 @@ export default function CategoriesClient() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
+              className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
+              {saving && <Spinner />}
               {saving ? '저장 중...' : editingId ? '수정 완료' : '추가하기'}
             </button>
           </div>
@@ -189,9 +191,7 @@ export default function CategoriesClient() {
 
         {/* 목록 */}
         {loading ? (
-          <div className="flex justify-center py-10">
-            <div className="w-6 h-6 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
-          </div>
+          <CardListSkeleton />
         ) : (
           <div className="space-y-2">
             {activeList.map((cat) => (

@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
+import PersonAvatar from '@/components/PersonAvatar'
+import { StatsContentSkeleton } from '@/components/Skeleton'
 import type { Category, IncomeCategory, Profile, Expense, Income } from '@/types'
 
 type Props = { currentUserId: string }
@@ -208,9 +210,7 @@ export default function StatsClient({ currentUserId }: Props) {
 
       <main className="flex-1 overflow-y-auto pb-24 px-4 pt-4 max-w-lg mx-auto w-full space-y-4">
         {loading ? (
-          <div className="flex justify-center py-16">
-            <div className="w-6 h-6 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
-          </div>
+          <StatsContentSkeleton />
         ) : viewMode === 'monthly' ? (
           <MonthlyContent
             grandExpense={grandExpense}
@@ -330,9 +330,7 @@ function MonthlyContent({
               return (
                 <div key={profile.id} className="flex items-center justify-between py-1">
                   <div className="flex items-center gap-2">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${isMe ? 'bg-gray-100' : 'bg-blue-50'}`}>
-                      {isMe ? '😊' : '💑'}
-                    </div>
+                    <PersonAvatar profile={profile} size={32} />
                     <div>
                       <p className="text-sm font-medium text-gray-800">{profile.display_name}</p>
                       {isMe && <p className="text-xs text-gray-400">나</p>}

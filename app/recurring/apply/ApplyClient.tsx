@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
 import CategoryBadge from '@/components/CategoryBadge'
+import { CardListSkeleton, Spinner } from '@/components/Skeleton'
 import type { Profile, RecurringExpense, Category, IncomeCategory } from '@/types'
 
 type ApplyItem = RecurringExpense & {
@@ -146,9 +147,7 @@ function ApplyForm({ currentUserId }: Props) {
 
       <main className="flex-1 overflow-y-auto pb-32 px-4 pt-5 max-w-lg mx-auto w-full">
         {loading ? (
-          <div className="flex justify-center py-16">
-            <div className="w-6 h-6 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
-          </div>
+          <CardListSkeleton />
         ) : applyItems.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-4xl mb-3">📋</p>
@@ -223,8 +222,9 @@ function ApplyForm({ currentUserId }: Props) {
               <button
                 onClick={handleApply}
                 disabled={applying || selectedCount === 0}
-                className="w-full py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl font-semibold text-base transition-colors disabled:opacity-50"
+                className="w-full py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl font-semibold text-base transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
+                {applying && <Spinner />}
                 {applying ? '적용 중...' : `${selectedCount}건 적용하기`}
               </button>
             </div>

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
 import CategoryBadge from '@/components/CategoryBadge'
 import { Dialog, useConfirm } from '@/components/Dialog'
+import { CardListSkeleton, Spinner } from '@/components/Skeleton'
 import type { Category, IncomeCategory, Profile, RecurringExpense } from '@/types'
 
 type Props = {
@@ -298,8 +299,9 @@ export default function RecurringClient({ currentUserId }: Props) {
             <button
               onClick={handleAddSave}
               disabled={formSaving}
-              className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50"
+              className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
+              {formSaving && <Spinner />}
               {formSaving ? '저장 중...' : '저장'}
             </button>
           </div>
@@ -307,9 +309,7 @@ export default function RecurringClient({ currentUserId }: Props) {
 
         {/* 목록 */}
         {loading ? (
-          <div className="flex justify-center py-16">
-            <div className="w-6 h-6 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
-          </div>
+          <CardListSkeleton />
         ) : items.length === 0 && !showAddForm ? (
           <div className="text-center py-20">
             <p className="text-4xl mb-3">📋</p>

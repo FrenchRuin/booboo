@@ -4,7 +4,9 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import CategoryBadge from '@/components/CategoryBadge'
+import PersonAvatar from '@/components/PersonAvatar'
 import { Dialog, useConfirm } from '@/components/Dialog'
+import { EntryListSkeleton } from '@/components/Skeleton'
 import type { Expense, Income, Profile } from '@/types'
 
 type EntryType = 'expense' | 'income'
@@ -129,11 +131,7 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
   }, [entries, typeFilter, categoryFilter])
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-12">
-        <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-700 rounded-full animate-spin" />
-      </div>
-    )
+    return <EntryListSkeleton />
   }
 
   // 날짜별 그룹핑
@@ -220,7 +218,8 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
                     ? (entry as Income).received_by
                     : (entry as Expense).paid_by
                   const isMine = personId === currentUserId
-                  const personName = profiles.find((p) => p.id === personId)?.display_name ?? (isMine ? '나' : '파트너')
+                  const personProfile = profiles.find((p) => p.id === personId)
+                  const personName = personProfile?.display_name ?? (isMine ? '나' : '파트너')
 
                   const category = isIncome
                     ? (entry as Income).income_categories
@@ -243,8 +242,9 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
                           ) : (
                             <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0 bg-gray-100 text-gray-500">기타</span>
                           )}
-                          <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${isMine ? 'bg-gray-100 text-gray-500' : 'bg-blue-50 text-blue-500'}`}>
-                            {personName}
+                          <span className={`flex items-center gap-1 pl-0.5 pr-1.5 py-0.5 rounded-full flex-shrink-0 ${isMine ? 'bg-gray-100 text-gray-500' : 'bg-blue-50 text-blue-500'}`}>
+                            <PersonAvatar profile={personProfile} size={14} />
+                            <span className="text-xs">{personName}</span>
                           </span>
                           <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${isIncome ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}>
                             {isIncome ? '소득' : '지출'}
@@ -259,15 +259,13 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
                         <span className={`text-sm font-semibold ${isIncome ? 'text-green-600' : 'text-gray-900'}`}>
                           {isIncome ? '+' : '-'}{entry.amount.toLocaleString('ko-KR')}원
                         </span>
-                        {isMine && (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleDelete(entry.id, entry._type) }}
-                            className="text-gray-300 hover:text-red-400 transition-colors text-xs p-1"
-                            aria-label="삭제"
-                          >
-                            ✕
-                          </button>
-                        )}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDelete(entry.id, entry._type) }}
+                          className="text-gray-300 hover:text-red-400 transition-colors text-xs p-1"
+                          aria-label="삭제"
+                        >
+                          ✕
+                        </button>
                       </div>
                     </div>
                   )

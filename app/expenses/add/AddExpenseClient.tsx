@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
+import { FormSkeleton, Spinner } from '@/components/Skeleton'
 import type { Category, IncomeCategory, Profile } from '@/types'
 
 type EntryType = 'expense' | 'income'
@@ -135,9 +136,7 @@ function AddExpenseForm({ currentUserId }: Props) {
 
       <main className="flex-1 overflow-y-auto pb-32 px-4 pt-5 max-w-lg mx-auto w-full">
         {initialLoading ? (
-          <div className="flex justify-center py-16">
-            <div className="w-6 h-6 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
-          </div>
+          <FormSkeleton />
         ) : (
           <div className="space-y-4">
             {/* 지출 / 소득 탭 */}
@@ -259,10 +258,11 @@ function AddExpenseForm({ currentUserId }: Props) {
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className={`w-full py-4 rounded-2xl font-semibold text-base transition-colors disabled:opacity-50 text-white ${
+              className={`w-full py-4 rounded-2xl font-semibold text-base transition-colors disabled:opacity-50 text-white flex items-center justify-center gap-2 ${
                 entryType === 'expense' ? 'bg-gray-900 hover:bg-gray-700' : 'bg-green-600 hover:bg-green-700'
               }`}
             >
+              {loading && <Spinner />}
               {loading ? '저장 중...' : isEdit ? '수정 완료' : entryType === 'expense' ? '지출 저장' : '소득 저장'}
             </button>
           </div>

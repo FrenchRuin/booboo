@@ -71,6 +71,8 @@ npm run lint       # 린트
 
 - **Supabase JOIN 대신 별도 쿼리**: `profiles!paid_by(*)` 같은 암묵적 JOIN은 FK가 `auth.users`를 가리킬 때 동작 안 함. profiles 따로 fetch 후 JS에서 합치는 방식 사용.
 
+- **UPDATE 정책을 등록자 본인(`auth.uid() = paid_by`)으로 좁히면 배우자가 수정/삭제 못함**: "우리 둘만 쓰는 앱"이라도 UPDATE 정책을 등록자 개인으로 제한하면 상대방이 수정·소프트삭제 버튼을 눌러도 RLS에 막혀 조용히 실패함(에러 없이 0행 업데이트). expenses/incomes처럼 부부가 공동으로 관리해야 하는 데이터는 `USING (auth.role() = 'authenticated') WITH CHECK (true)`로 두고, "내 것만 수정 가능" 제약은 애초에 걸지 않기. (`008_shared_edit_delete.sql` 참고)
+
 ## Next.js / 데이터 패칭 관련
 
 - **서버 컴포넌트 캐싱 문제**: 탭 이동 후 돌아왔을 때 데이터가 초기화되어 보이는 문제는 서버 컴포넌트 캐싱 때문. 실시간성이 필요한 페이지엔 `export const dynamic = 'force-dynamic'` 추가.
@@ -112,3 +114,7 @@ npm run lint       # 린트
 - **`useSearchParams`는 반드시 Suspense로 감싸야 함**: Next.js App Router에서 `useSearchParams()`를 사용하는 클라이언트 컴포넌트는 `<Suspense>`로 감싸지 않으면 빌드/런타임 에러 발생.
 
 - **브라우저 native alert/confirm 금지**: `alert()`, `confirm()`은 모바일 PWA에서 UX가 나쁨. `components/Dialog.tsx`의 `useConfirm` 훅을 사용할 것. Promise 기반으로 `await confirm('메시지')`처럼 사용 가능.
+
+- **라우트 전환 로딩은 `loading.tsx`로**: 각 페이지가 서버 컴포넌트에서 `supabase.auth.getUser()`를 거친 뒤 렌더링되는 구조라, 프리티어 환경에선 탭 이동 시 잠깐 빈 화면처럼 보일 수 있음. 라우트 세그먼트마다 `loading.tsx`를 두면 Next.js가 그 대기 시간 동안 자동으로 보여줌 — 별도 상태 관리 없이 파일만 추가하면 됨. 컴포넌트 내부 데이터 재조회(월 변경, 필터 변경 등) 로딩은 `components/Skeleton.tsx`의 스켈레톤 조각들(`EntryListSkeleton`, `StatsContentSkeleton`, `CardListSkeleton`, `FormSkeleton` 등)로 통일해서 사용.
+
+- **결제자/수취인 등 사람 표시는 `PersonAvatar` 사용**: 이모지나 이니셜을 직접 하드코딩하지 말고 `components/PersonAvatar.tsx` 사용 — `avatar_url` 있으면 사진, 없으면 이름 첫 글자로 자동 fallback.
