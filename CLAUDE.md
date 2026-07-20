@@ -7,7 +7,8 @@
 # 기술 스택
 
 - **프레임워크**: Next.js (App Router, TypeScript)
-- **스타일링**: Tailwind CSS
+- **스타일링**: Tailwind CSS v4, Pretendard 폰트(self-hosted, `pretendard` 패키지), 다크모드 지원(클래스 기반)
+- **아이콘**: `lucide-react` (이모지 대신 통일된 아이콘 사용, 새 아이콘 필요하면 여기서 가져오기)
 - **백엔드/DB**: Supabase (Postgres + Auth + Realtime)
 - **배포**: Vercel
 - PWA로 배포 (홈 화면 추가해서 앱처럼 사용, 앱스토어 배포 안 함)
@@ -101,6 +102,30 @@ npm run lint       # 린트
 
 - **매직링크 이메일 rate limit**: Supabase 무료 플랜은 OTP/매직링크 이메일 발송에 시간당 횟수 제한이 있음. 짧은 시간에 여러 번 요청하면 429 에러 발생. 비밀번호 로그인을 함께 지원하는 것이 좋음 (`signInWithPassword`). 현재 로그인 페이지는 비밀번호/매직링크 탭 전환 방식으로 구현되어 있음.
 
+## 다크모드 관련
+
+- **Tailwind v4에서 클래스 기반 다크모드는 `@custom-variant` 등록 필요**: 기본값은 `prefers-color-scheme` 미디어쿼리 기반이라 설정 화면에서 수동 토글이 안 먹힘. `globals.css`에 `@custom-variant dark (&:where(.dark, .dark *));` 추가하고, `<html>`에 `.dark` 클래스를 붙였다 뗐다 하는 방식으로 전환 (`lib/theme.ts` 참고). 깜빡임(FOUC) 방지를 위해 `layout.tsx`에 `strategy="beforeInteractive"` 스크립트로 페인트 전에 클래스를 미리 적용해야 함.
+
+- **Tailwind 색상에 opacity 접미사(`/50` 등)가 붙은 클래스는 일괄 치환 스크립트가 깨뜨리기 쉬움**: 예를 들어 `bg-blue-50/50`에 자동으로 `dark:` 변형을 삽입하는 정규식이 `/50`을 못 알아보고 중간에 끼어들면 `bg-blue-50 dark:bg-blue-500/10/50`처럼 무효한 클래스가 생기고, Tailwind가 이를 조용히 무시해버려서 라이트모드용 배경이 다크모드에도 그대로 남는 버그가 생김(글씨가 안 보이는 등). Tailwind 클래스를 스크립트로 일괄 수정할 땐 `/\d+` opacity 접미사가 붙은 클래스가 있는지 먼저 확인할 것.
+
+- **"검정 배경 + 흰 글씨" 버튼(`bg-gray-900 text-white`)은 다크모드에서 단순히 dark: 색만 얹으면 안 되고 반전시켜야 함**: 로그인 버튼, 결제자 선택 필 같은 요소는 다크모드에서 `dark:bg-gray-100 dark:text-gray-900`처럼 밝은 배경+어두운 글씨로 뒤집어야 배경(다크 카드와 거의 같은 색)에 묻히지 않음. `text-white`가 다른 조건부 분기(예: 초록 버튼)와 공유되는 경우 자동 치환이 위험하므로 이런 곳은 수동으로 확인.
+
+- **탭 안의 "선택된 필"(`bg-white shadow-sm`)은 트랙(`bg-gray-100`)보다 밝은 다크 색을 써야 함**: 둘 다 기계적으로 `dark:bg-gray-900`를 넣으면 트랙(`dark:bg-gray-800`)보다 필이 더 어두워져서 오목하게 들어가 보임. 필은 `dark:bg-gray-700`처럼 트랙보다 한 단계 밝게.
+
+## 레이아웃 / 스크롤 관련
+
+- **`flex flex-col h-full` 안의 스크롤 영역(`<main overflow-y-auto>`)에는 반드시 `min-h-0` 필요**: 없으면 flex 아이템 기본값(`min-height: auto`) 때문에 내용이 길어질 때 `<main>`이 자기 콘텐츠 크기만큼 커져버려서, `<main>` 내부가 아니라 페이지 전체(헤더 포함)가 스크롤됨 — "스크롤하면 위 영역을 넘어서는 느낌"의 원인이었음.
+
+- **`<header>`가 `<nav>`(`position: fixed`)처럼 콘텐츠가 뒤로 지나가는 느낌을 내려면 `sticky`를 쓰고, 반드시 스크롤 컨테이너의 자손이어야 함**: header를 `<main>`의 형제로 두면 sticky가 동작할 스크롤 컨테이너가 없어서 아무 효과가 없음. `<main>` 안의 첫 자식으로 넣고 `sticky top-0`을 줘야 함.
+
+- **하단 고정 네비게이션의 안전영역은 실제 CSS로 확보해야 함**: `safe-area-inset-bottom`이라는 이름의 클래스를 그냥 쓰면 아무 정의가 없는 죽은 클래스라 효과가 없음(존재하지 않는 유틸리티는 조용히 무시됨). `pb-[env(safe-area-inset-bottom)]`처럼 실제 CSS 환경변수를 써야 노치/홈 인디케이터 기기에서 제대로 여백이 생김. 스크롤 영역 하단 패딩도 `pb-24` 같은 고정값 대신 `pb-[calc(6rem+env(safe-area-inset-bottom))]`처럼 안전영역을 더해서 기기별로 자동 대응. 헤더 위쪽도 동일하게 `pt-[calc(3rem+env(safe-area-inset-top))]`.
+
+## 개발 중 검증 방법
+
+- **로그인 없이 인증된 페이지의 레이아웃을 시각 검증하려면**: `middleware.ts`의 `isPublicPath`에 임시 경로(예: `/scrolltest`)를 추가하고 `app/` 아래 같은 이름으로 임시 라우트를 만들어 실제 컴포넌트 구조를 재현한 뒤 스크린샷으로 확인. **끝나면 라우트 삭제 + middleware 원복 필수** (커밋에 테스트 코드 남기지 않기). 라우트 폴더명에 `_` 접두사를 쓰면 Next.js가 private folder로 취급해 라우팅에서 제외하니 주의.
+
+- **빌드가 `Cannot find module './xxx.js'` 같은 에러로 실패하면**: `.next` 캐시가 깨진 경우가 많음 (원인 불명, Windows 파일시스템 관련 추정). `rm -rf .next` 후 재시도.
+
 ## PWA / Service Worker 관련
 
 - **PWA 아이콘 파일 필수**: `public/icons/icon-192.png`, `public/icons/icon-512.png` 파일이 없으면 404 에러 발생. manifest.json에서 참조하는 아이콘 파일은 반드시 실제로 존재해야 함.
@@ -118,3 +143,5 @@ npm run lint       # 린트
 - **라우트 전환 로딩은 `loading.tsx`로**: 각 페이지가 서버 컴포넌트에서 `supabase.auth.getUser()`를 거친 뒤 렌더링되는 구조라, 프리티어 환경에선 탭 이동 시 잠깐 빈 화면처럼 보일 수 있음. 라우트 세그먼트마다 `loading.tsx`를 두면 Next.js가 그 대기 시간 동안 자동으로 보여줌 — 별도 상태 관리 없이 파일만 추가하면 됨. 컴포넌트 내부 데이터 재조회(월 변경, 필터 변경 등) 로딩은 `components/Skeleton.tsx`의 스켈레톤 조각들(`EntryListSkeleton`, `StatsContentSkeleton`, `CardListSkeleton`, `FormSkeleton` 등)로 통일해서 사용.
 
 - **결제자/수취인 등 사람 표시는 `PersonAvatar` 사용**: 이모지나 이니셜을 직접 하드코딩하지 말고 `components/PersonAvatar.tsx` 사용 — `avatar_url` 있으면 사진, 없으면 이름 첫 글자로 자동 fallback.
+
+- **아이콘은 이모지 대신 `lucide-react`**: 메뉴/버튼/빈 상태 아이콘 등 새로 추가할 때 이모지 쓰지 말고 `lucide-react`에서 가져다 쓰기 (`import { Wallet } from 'lucide-react'`). 앱 전체가 이 라이브러리로 통일되어 있음.
