@@ -43,7 +43,7 @@ export default function BottomNav() {
 
         {/* 오른쪽 2개 */}
         <NavItem href="/recurring" label="고정비" icon="🔁" />
-        <NavItem href="/profile" label="프로필" icon="👤" />
+        <NavItem href="/profile" label="설정" icon="⚙️" />
 
         {/* 정가운데 + 버튼 (absolute) */}
         <button

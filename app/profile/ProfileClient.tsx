@@ -124,7 +124,7 @@ export default function ProfileClient({ userId, email }: Props) {
     <div className="flex flex-col h-full">
       <header className="bg-white px-5 pt-12 pb-5 shadow-[0_1px_0_0_#F0F0F0]">
         <div className="max-w-lg mx-auto">
-          <h1 className="text-lg font-bold text-gray-900">프로필</h1>
+          <h1 className="text-lg font-bold text-gray-900">설정</h1>
         </div>
       </header>
 
@@ -200,7 +200,7 @@ export default function ProfileClient({ userId, email }: Props) {
           onClick={() => router.push('/settings/categories')}
           className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center justify-between hover:bg-gray-50 transition-colors"
         >
-          <span className="text-sm font-medium text-gray-900">지출/소득 유형 관리</span>
+          <span className="text-sm font-medium text-gray-900">카테고리 관리</span>
           <ChevronIcon direction="right" className="w-4 h-4 text-gray-400" />
         </button>
 

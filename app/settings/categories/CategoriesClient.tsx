@@ -13,6 +13,12 @@ type CategoryType = 'expense' | 'income'
 type AnyCategory = Category | IncomeCategory
 
 const DEFAULT_COLOR = '#4ECDC4'
+const PRESET_COLORS = [
+  '#FF6B6B', '#FF8E53', '#FFC542', '#4ECDC4', '#45B7D1',
+  '#5B7FFF', '#9B7EDE', '#96CEB4', '#4CAF50', '#E91E63', '#B0B0B0',
+]
+
+type FormState = { name: string; color: string }
 
 export default function CategoriesClient() {
   const router = useRouter()
@@ -26,8 +32,7 @@ export default function CategoriesClient() {
 
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [formName, setFormName] = useState('')
-  const [formColor, setFormColor] = useState(DEFAULT_COLOR)
+  const [form, setForm] = useState<FormState>({ name: '', color: DEFAULT_COLOR })
   const [saving, setSaving] = useState(false)
 
   const fetchData = useCallback(async () => {
@@ -50,21 +55,25 @@ export default function CategoriesClient() {
   const resetForm = () => {
     setShowAddForm(false)
     setEditingId(null)
-    setFormName('')
-    setFormColor(DEFAULT_COLOR)
+    setForm({ name: '', color: DEFAULT_COLOR })
     setError(null)
   }
 
+  const startAdd = () => {
+    if (showAddForm) { resetForm(); return }
+    resetForm()
+    setShowAddForm(true)
+  }
+
   const startEdit = (item: AnyCategory) => {
-    setEditingId(item.id)
     setShowAddForm(false)
-    setFormName(item.name)
-    setFormColor(item.color)
+    setEditingId(item.id)
+    setForm({ name: item.name, color: item.color })
     setError(null)
   }
 
   const handleSave = async () => {
-    if (!formName.trim()) { setError('이름을 입력해주세요.'); return }
+    if (!form.name.trim()) { setError('이름을 입력해주세요.'); return }
 
     setSaving(true)
     setError(null)
@@ -73,14 +82,14 @@ export default function CategoriesClient() {
     if (editingId) {
       const { error: err } = await supabase
         .from(table)
-        .update({ name: formName.trim(), color: formColor })
+        .update({ name: form.name.trim(), color: form.color })
         .eq('id', editingId)
       if (err) { setError('저장 실패: ' + err.message); setSaving(false); return }
     } else {
       const maxSortOrder = list.reduce((max, c) => Math.max(max, c.sort_order), 0)
       const { error: err } = await supabase
         .from(table)
-        .insert({ name: formName.trim(), color: formColor, sort_order: maxSortOrder + 1 })
+        .insert({ name: form.name.trim(), color: form.color, sort_order: maxSortOrder + 1 })
       if (err) { setError('저장 실패: ' + err.message); setSaving(false); return }
     }
 
@@ -104,6 +113,71 @@ export default function CategoriesClient() {
 
   const activeList = list.filter((c) => c.is_active)
   const inactiveList = list.filter((c) => !c.is_active)
+
+  const renderForm = (submitLabel: string) => (
+    <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
+      <div>
+        <label className="text-xs font-medium text-gray-500 mb-1.5 block">이름</label>
+        <input
+          type="text"
+          autoFocus
+          value={form.name}
+          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+          placeholder="예: 반려동물"
+          maxLength={20}
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+        />
+      </div>
+      <div>
+        <label className="text-xs font-medium text-gray-500 mb-1.5 block">색상</label>
+        <div className="flex flex-wrap items-center gap-2 mb-2">
+          {PRESET_COLORS.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, color: c }))}
+              style={{ backgroundColor: c }}
+              className={`w-7 h-7 rounded-full flex-shrink-0 transition-transform ${
+                form.color.toLowerCase() === c.toLowerCase() ? 'ring-2 ring-offset-2 ring-gray-900 scale-105' : ''
+              }`}
+              aria-label={c}
+            />
+          ))}
+          <label className="w-7 h-7 rounded-full flex-shrink-0 border border-dashed border-gray-300 flex items-center justify-center text-gray-400 cursor-pointer relative overflow-hidden text-xs">
+            🎨
+            <input
+              type="color"
+              value={form.color}
+              onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+            />
+          </label>
+        </div>
+        {form.name.trim() && (
+          <CategoryBadge category={{ name: form.name.trim(), color: form.color }} />
+        )}
+      </div>
+
+      {error && <p className="text-sm text-red-500">{error}</p>}
+
+      <div className="flex gap-2">
+        <button
+          onClick={resetForm}
+          className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-500 hover:bg-gray-100 transition-colors"
+        >
+          취소
+        </button>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="flex-[2] py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+        >
+          {saving && <Spinner />}
+          {saving ? '저장 중...' : submitLabel}
+        </button>
+      </div>
+    </div>
+  )
 
   return (
     <div className="flex flex-col h-full">
@@ -140,92 +214,59 @@ export default function CategoriesClient() {
 
         {/* 추가 버튼 */}
         <button
-          onClick={() => {
-            if (showAddForm) { resetForm() } else { resetForm(); setShowAddForm(true) }
-          }}
+          onClick={startAdd}
           className="w-full py-2.5 rounded-xl border border-dashed border-gray-300 text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
         >
           {showAddForm ? '취소' : '+ 새 유형 추가'}
         </button>
 
-        {/* 추가/수정 폼 */}
-        {(showAddForm || editingId) && (
-          <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
-            <div>
-              <label className="text-xs font-medium text-gray-500 mb-1.5 block">이름</label>
-              <input
-                type="text"
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-                placeholder="예: 반려동물"
-                maxLength={20}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 mb-1.5 block">색상</label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  value={formColor}
-                  onChange={(e) => setFormColor(e.target.value)}
-                  className="w-12 h-[42px] rounded-xl border border-gray-200 bg-white cursor-pointer"
-                />
-                {formName.trim() && (
-                  <CategoryBadge category={{ name: formName.trim(), color: formColor }} />
-                )}
-              </div>
-            </div>
-
-            {error && <p className="text-sm text-red-500">{error}</p>}
-
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {saving && <Spinner />}
-              {saving ? '저장 중...' : editingId ? '수정 완료' : '추가하기'}
-            </button>
-          </div>
-        )}
+        {/* 추가 폼 (새 항목) */}
+        {showAddForm && renderForm('추가하기')}
 
         {/* 목록 */}
         {loading ? (
           <CardListSkeleton />
         ) : (
           <div className="space-y-2">
-            {activeList.map((cat) => (
-              <div key={cat.id} className="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-gray-100">
-                <div className="flex-1 min-w-0">
-                  <CategoryBadge category={cat} />
+            {activeList.map((cat) =>
+              editingId === cat.id ? (
+                <div key={cat.id}>{renderForm('수정 완료')}</div>
+              ) : (
+                <div key={cat.id} className="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-gray-100">
+                  <div className="flex-1 min-w-0">
+                    <CategoryBadge category={cat} />
+                  </div>
+                  <button
+                    onClick={() => startEdit(cat)}
+                    className="text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+                  >
+                    수정
+                  </button>
+                  <button
+                    onClick={() => handleToggleActive(cat)}
+                    className="text-xs font-medium text-red-500 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+                  >
+                    비활성화
+                  </button>
                 </div>
-                <button
-                  onClick={() => startEdit(cat)}
-                  className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1"
-                >
-                  수정
-                </button>
-                <button
-                  onClick={() => handleToggleActive(cat)}
-                  className="text-xs text-red-400 hover:text-red-500 px-2 py-1"
-                >
-                  비활성화
-                </button>
-              </div>
-            ))}
+              )
+            )}
 
             {inactiveList.length > 0 && (
               <>
-                <p className="text-xs text-gray-400 pt-3 pb-1 px-1">사용 안 함</p>
+                <div className="flex items-center gap-2 pt-4 pb-1.5 px-1">
+                  <span className="text-xs font-bold text-gray-500">사용 안 함</span>
+                  <span className="text-xs text-gray-400">{inactiveList.length}개</span>
+                  <div className="flex-1 h-px bg-gray-200" />
+                </div>
                 {inactiveList.map((cat) => (
-                  <div key={cat.id} className="flex items-center gap-3 p-3.5 bg-gray-50 rounded-2xl opacity-60">
-                    <div className="flex-1 min-w-0">
+                  <div key={cat.id} className="flex items-center gap-3 p-3.5 bg-gray-50 rounded-2xl border border-gray-100">
+                    <div className="flex-1 min-w-0 grayscale opacity-70">
                       <CategoryBadge category={cat} />
                     </div>
                     <button
                       onClick={() => handleToggleActive(cat)}
-                      className="text-xs text-blue-500 hover:text-blue-600 px-2 py-1"
+                      className="text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
                     >
                       다시 사용
                     </button>
