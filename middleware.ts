@@ -33,6 +33,11 @@ export async function middleware(request: NextRequest) {
   const isPublicPath =
     pathname.startsWith('/login') || pathname.startsWith('/auth')
 
+  // API 라우트는 로그인 페이지로 리다이렉트하지 않고 401 JSON을 그대로 반환 (각 라우트가 자체적으로 인증 체크)
+  if (!user && pathname.startsWith('/api/')) {
+    return NextResponse.json({ error: '로그인이 필요해요.' }, { status: 401 })
+  }
+
   if (!user && !isPublicPath) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'

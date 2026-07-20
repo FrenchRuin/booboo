@@ -7,7 +7,7 @@ import BottomNav from '@/components/BottomNav'
 import ExpenseList from '@/components/ExpenseList'
 import { Spinner } from '@/components/Skeleton'
 import { Dialog, useConfirm } from '@/components/Dialog'
-import { ChevronLeft, ChevronRight, Repeat, Download } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Repeat, Download, FileSpreadsheet } from 'lucide-react'
 import type { Expense, Income } from '@/types'
 
 type Props = {
@@ -23,6 +23,7 @@ export default function ExpensesClient({ currentUserId }: Props) {
   const [summary, setSummary] = useState({ income: 0, expense: 0 })
   const [refreshKey, setRefreshKey] = useState(0)
   const [exporting, setExporting] = useState(false)
+  const [sheetExporting, setSheetExporting] = useState(false)
 
   const fetchSummary = useCallback(async () => {
     const supabase = createClient()
@@ -104,6 +105,30 @@ export default function ExpensesClient({ currentUserId }: Props) {
     setExporting(false)
   }
 
+  const handleGoogleExport = async () => {
+    if (!hasData) {
+      await alert('내보낼 내역이 없어요.')
+      return
+    }
+    setSheetExporting(true)
+    try {
+      const res = await fetch('/api/export-sheet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ year, month }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        await alert(data.error ?? '구글시트 내보내기에 실패했어요.')
+      } else {
+        window.open(data.url, '_blank')
+      }
+    } catch {
+      await alert('구글시트 내보내기에 실패했어요.')
+    }
+    setSheetExporting(false)
+  }
+
 
   return (
     <div className="flex flex-col h-full">
@@ -169,6 +194,18 @@ export default function ExpensesClient({ currentUserId }: Props) {
                   <Spinner className="w-3.5 h-3.5 border-2 border-gray-400 dark:border-gray-500 border-t-gray-600 dark:border-t-gray-300" />
                 ) : (
                   <Download className="w-3.5 h-3.5" strokeWidth={2.5} />
+                )}
+              </button>
+              <button
+                onClick={handleGoogleExport}
+                disabled={sheetExporting || !hasData}
+                aria-label="구글시트로 내보내기"
+                className="flex items-center justify-center w-7 h-7 text-gray-500 dark:text-gray-400 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-40"
+              >
+                {sheetExporting ? (
+                  <Spinner className="w-3.5 h-3.5 border-2 border-gray-400 dark:border-gray-500 border-t-gray-600 dark:border-t-gray-300" />
+                ) : (
+                  <FileSpreadsheet className="w-3.5 h-3.5" strokeWidth={2.5} />
                 )}
               </button>
               <button
