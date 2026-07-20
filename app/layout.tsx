@@ -34,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="ko" className="h-full" suppressHydrationWarning>
+    <html lang="ko" className="h-dvh overflow-hidden overscroll-none" suppressHydrationWarning>
       <head>
         <Script
           id="theme-init"
@@ -42,7 +42,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
         />
       </head>
-      <body className="h-full bg-[#F7F8FA] dark:bg-[#0A0E14] antialiased" suppressHydrationWarning>
+      <body className="h-dvh overflow-hidden overscroll-none bg-[#F7F8FA] dark:bg-[#0A0E14] antialiased" suppressHydrationWarning>
         {children}
         <Script
           id="sw-register"

@@ -32,7 +32,7 @@ export default function BottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 shadow-[0_-1px_0_0_#F0F0F0] safe-area-inset-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 shadow-[0_-1px_0_0_#F0F0F0] pb-[env(safe-area-inset-bottom)]">
       <div className="relative flex max-w-lg mx-auto">
         {/* 왼쪽 2개 */}
         <NavItem href="/expenses" label="가계부" icon="💳" />

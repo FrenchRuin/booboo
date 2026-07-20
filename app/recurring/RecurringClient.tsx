@@ -116,7 +116,8 @@ export default function RecurringClient({ currentUserId }: Props) {
   return (
     <div className="flex flex-col h-full">
       <Dialog {...dialogProps} />
-      <header className="bg-white dark:bg-gray-900 px-5 pt-12 pb-5 shadow-[0_1px_0_0_#F0F0F0]">
+      <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-hide">
+      <header className="sticky top-0 z-10 bg-white dark:bg-gray-900 px-5 pt-[calc(3rem+env(safe-area-inset-top))] pb-5 shadow-[0_1px_0_0_#F0F0F0]">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <h1 className="text-lg font-bold text-gray-900 dark:text-gray-50">고정비 관리</h1>
           <button
@@ -128,7 +129,7 @@ export default function RecurringClient({ currentUserId }: Props) {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-32 px-4 pt-4 max-w-lg mx-auto w-full">
+      <div className="px-4 pt-4 pb-[calc(8rem+env(safe-area-inset-bottom))] max-w-lg mx-auto w-full">
 
         {/* 추가 폼 */}
         {showAddForm && (
@@ -361,6 +362,7 @@ export default function RecurringClient({ currentUserId }: Props) {
             })}
           </div>
         )}
+      </div>
       </main>
 
       <BottomNav />

@@ -9,7 +9,7 @@ export function Spinner({ className = 'w-4 h-4 border-2 border-white/40 border-t
 // 헤더 (월 네비 + 잔액 + 소득/지출) 스켈레톤 — expenses/stats 페이지 공용
 export function HeaderSkeleton() {
   return (
-    <header className="bg-white dark:bg-gray-900 px-5 pt-12 pb-5 shadow-[0_1px_0_0_#F0F0F0]">
+    <header className="sticky top-0 z-10 bg-white dark:bg-gray-900 px-5 pt-[calc(3rem+env(safe-area-inset-top))] pb-5 shadow-[0_1px_0_0_#F0F0F0]">
       <div className="max-w-lg mx-auto">
         <div className="flex items-center justify-between mb-5">
           <Skeleton className="w-8 h-8 rounded-full" />

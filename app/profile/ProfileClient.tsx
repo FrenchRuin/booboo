@@ -139,13 +139,14 @@ export default function ProfileClient({ userId, email }: Props) {
 
   return (
     <div className="flex flex-col h-full">
-      <header className="bg-white dark:bg-gray-900 px-5 pt-12 pb-5 shadow-[0_1px_0_0_#F0F0F0]">
+      <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-hide">
+      <header className="sticky top-0 z-10 bg-white dark:bg-gray-900 px-5 pt-[calc(3rem+env(safe-area-inset-top))] pb-5 shadow-[0_1px_0_0_#F0F0F0]">
         <div className="max-w-lg mx-auto">
           <h1 className="text-lg font-bold text-gray-900 dark:text-gray-50">설정</h1>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto pb-24 px-4 pt-6 max-w-lg mx-auto w-full space-y-4">
+      <div className="px-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] max-w-lg mx-auto w-full space-y-4">
 
         {/* 프로필 사진 */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
@@ -254,6 +255,7 @@ export default function ProfileClient({ userId, email }: Props) {
           </button>
         </div>
 
+      </div>
       </main>
 
       <BottomNav />
