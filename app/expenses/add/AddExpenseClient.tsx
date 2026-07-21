@@ -14,6 +14,29 @@ type Props = {
   currentUserId: string
 }
 
+const KOREAN_AMOUNT_UNITS: [number, string][] = [
+  [100000000, '억'],
+  [10000, '만'],
+  [1000, '천'],
+  [100, '백'],
+  [10, '십'],
+]
+
+function formatKoreanAmount(num: number): string {
+  if (!num || num <= 0) return ''
+  let remaining = num
+  let result = ''
+  for (const [value, label] of KOREAN_AMOUNT_UNITS) {
+    const count = Math.floor(remaining / value)
+    if (count > 0) {
+      result += `${count}${label}`
+      remaining %= value
+    }
+  }
+  if (remaining > 0) result += remaining
+  return `${result}원`
+}
+
 function AddExpenseForm({ currentUserId }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -177,6 +200,11 @@ function AddExpenseForm({ currentUserId }: Props) {
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 font-medium">원</span>
               </div>
+              {amount && (
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5 px-1">
+                  {formatKoreanAmount(parseInt(amount.replace(/,/g, ''), 10) || 0)}
+                </p>
+              )}
             </div>
 
             {/* 카테고리 */}
