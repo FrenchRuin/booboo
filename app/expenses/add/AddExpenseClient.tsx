@@ -6,35 +6,13 @@ import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
 import { ChevronLeft, Wallet, PiggyBank } from 'lucide-react'
 import { FormSkeleton, Spinner } from '@/components/Skeleton'
+import { formatAmount, formatKoreanAmount } from '@/lib/format'
 import type { Category, IncomeCategory, Profile } from '@/types'
 
 type EntryType = 'expense' | 'income'
 
 type Props = {
   currentUserId: string
-}
-
-const KOREAN_AMOUNT_UNITS: [number, string][] = [
-  [100000000, '억'],
-  [10000, '만'],
-  [1000, '천'],
-  [100, '백'],
-  [10, '십'],
-]
-
-function formatKoreanAmount(num: number): string {
-  if (!num || num <= 0) return ''
-  let remaining = num
-  let result = ''
-  for (const [value, label] of KOREAN_AMOUNT_UNITS) {
-    const count = Math.floor(remaining / value)
-    if (count > 0) {
-      result += `${count}${label}`
-      remaining %= value
-    }
-  }
-  if (remaining > 0) result += remaining
-  return `${result}원`
 }
 
 function AddExpenseForm({ currentUserId }: Props) {
@@ -90,11 +68,6 @@ function AddExpenseForm({ currentUserId }: Props) {
   }, [editId, editType])
 
   useEffect(() => { fetchEdit() }, [fetchEdit])
-
-  const formatAmount = (val: string) => {
-    const num = val.replace(/[^0-9]/g, '')
-    return num ? parseInt(num, 10).toLocaleString('ko-KR') : ''
-  }
 
   const handleTypeChange = (type: EntryType) => {
     if (isEdit) return

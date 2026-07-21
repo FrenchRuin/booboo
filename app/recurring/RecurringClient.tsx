@@ -6,7 +6,7 @@ import BottomNav from '@/components/BottomNav'
 import CategoryBadge from '@/components/CategoryBadge'
 import { Dialog, useConfirm } from '@/components/Dialog'
 import { CardListSkeleton, Spinner } from '@/components/Skeleton'
-import { Wallet, PiggyBank, ClipboardList, X } from 'lucide-react'
+import { Wallet, PiggyBank, ClipboardList, Trash2 } from 'lucide-react'
 import type { Category, IncomeCategory, Profile, RecurringExpense } from '@/types'
 
 type Props = {
@@ -354,9 +354,10 @@ export default function RecurringClient({ currentUserId }: Props) {
                   {item.paid_by === currentUserId && (
                     <button
                       onClick={() => handleDelete(item.id)}
-                      className="text-gray-300 dark:text-gray-600 hover:text-red-400 dark:hover:text-red-300 transition-colors p-1 flex-shrink-0"
+                      aria-label="삭제"
+                      className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 dark:text-gray-500 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-500 dark:hover:text-red-400 transition-colors flex-shrink-0"
                     >
-                      <X className="w-3.5 h-3.5" strokeWidth={2.5} />
+                      <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
                     </button>
                   )}
                 </div>

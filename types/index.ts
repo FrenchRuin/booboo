@@ -58,3 +58,16 @@ export type Income = {
   deleted_at: string | null
   income_categories?: IncomeCategory
 }
+
+export type AssetType = 'bank' | 'savings' | 'stock'
+
+export type Asset = {
+  id: string
+  name: string
+  type: AssetType
+  amount: number
+  owner_id: string
+  memo: string | null
+  created_at: string
+  updated_at: string
+}

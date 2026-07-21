@@ -7,7 +7,7 @@ import BottomNav from '@/components/BottomNav'
 import ExpenseList from '@/components/ExpenseList'
 import { Spinner } from '@/components/Skeleton'
 import { Dialog, useConfirm } from '@/components/Dialog'
-import { ChevronLeft, ChevronRight, Repeat, Download, FileSpreadsheet } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Repeat, Download, FileSpreadsheet, Plus } from 'lucide-react'
 import type { Expense, Income } from '@/types'
 
 type Props = {
@@ -230,6 +230,14 @@ export default function ExpensesClient({ currentUserId }: Props) {
         />
       </div>
       </main>
+
+      <button
+        onClick={() => router.push('/expenses/add')}
+        aria-label="내역 추가"
+        className="fixed right-5 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-20 w-14 h-14 bg-blue-500 hover:bg-blue-600 active:scale-95 text-white rounded-full shadow-lg shadow-blue-200 dark:shadow-blue-950/40 flex items-center justify-center transition-all"
+      >
+        <Plus className="w-7 h-7" strokeWidth={2.5} />
+      </button>
 
       <BottomNav />
     </div>

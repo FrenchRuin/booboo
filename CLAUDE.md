@@ -26,6 +26,7 @@ npm run lint       # 린트
 ```
 /app                 # Next.js App Router 페이지
   /expenses           # 지출 입력/목록
+  /assets              # 자산관리 (통장/적금/주식 — 현재 잔액만 수동 관리, 히스토리 없음)
   /stats               # 월별/카테고리별 통계
 /components          # 재사용 UI 컴포넌트
 /lib
@@ -40,6 +41,7 @@ npm run lint       # 린트
 - Supabase 호출은 `/lib/supabase.ts`의 클라이언트를 통해서만, 컴포넌트에 직접 URL/key 하드코딩 금지
 - 환경변수는 항상 `.env.local`에 두고 `NEXT_PUBLIC_` 접두사는 클라이언트에 노출되는 값에만 사용
 - 날짜/금액 포맷은 `Intl` API 사용 (원화 기준, `ko-KR` 로케일)
+- 금액 입력창 콤마 포맷(`formatAmount`)과 "3만7천원" 식 한글 표시(`formatKoreanAmount`)는 `lib/format.ts`에 공용 유틸로 있음 — 새 입력 폼 만들 때 중복 구현하지 말고 여기서 import
 - 새 테이블/스키마 변경 시 SQL을 `/supabase/migrations/`에 파일로 남기기 (Supabase 대시보드에서만 클릭으로 바꾸고 끝내지 않기)
 
 # 이 프로젝트에서 항상 지킬 것
@@ -73,6 +75,9 @@ npm run lint       # 린트
 - **Supabase JOIN 대신 별도 쿼리**: `profiles!paid_by(*)` 같은 암묵적 JOIN은 FK가 `auth.users`를 가리킬 때 동작 안 함. profiles 따로 fetch 후 JS에서 합치는 방식 사용.
 
 - **UPDATE 정책을 등록자 본인(`auth.uid() = paid_by`)으로 좁히면 배우자가 수정/삭제 못함**: "우리 둘만 쓰는 앱"이라도 UPDATE 정책을 등록자 개인으로 제한하면 상대방이 수정·소프트삭제 버튼을 눌러도 RLS에 막혀 조용히 실패함(에러 없이 0행 업데이트). expenses/incomes처럼 부부가 공동으로 관리해야 하는 데이터는 `USING (auth.role() = 'authenticated') WITH CHECK (true)`로 두고, "내 것만 수정 가능" 제약은 애초에 걸지 않기. (`008_shared_edit_delete.sql` 참고)
+
+- **`assets` 테이블은 소프트 삭제 대신 하드 삭제**: expenses/incomes는 "지출 로그"라 실수 복구용 `deleted_at`이 있지만, `assets`(통장/적금/주식)는 "현재 잔액 상태"를 유지하는 테이블이라 로그가 아님 → 삭제는 그냥 `DELETE` (`assets_delete` 정책 참고, `009_assets.sql`). 새 테이블 만들 때 "로그성 데이터인지 상태성 데이터인지"에 따라 소프트/하드 삭제를 구분할 것.
+- **`updated_at`은 DB가 자동 갱신 안 해줌**: `assets.updated_at`은 `DEFAULT now()`라 INSERT 시엔 채워지지만, UPDATE 트리거가 없어서 수정할 때마다 클라이언트 코드에서 직접 `updated_at: new Date().toISOString()`을 payload에 넣어줘야 함. 트리거 안 만들었으면 당연히 안 바뀐다는 것 잊지 말기.
 
 ## Next.js / 데이터 패칭 관련
 
@@ -146,7 +151,9 @@ npm run lint       # 린트
 
 - **레이아웃 검증은 0/빈 값이 아니라 실제 크기의 데이터로 해야 함**: 금액 0원, 짧은 이름 등 빈 상태로 테스트하면 넘침 버그가 안 보임. 백만 원 단위 금액, 20자에 가까운 닉네임처럼 실제로 나올 수 있는 최대치로 테스트하고, 좁은 화면(360px)부터 확인. `document.querySelectorAll('*')`로 각 요소의 `scrollWidth > clientWidth` 비교해서 넘치는 요소를 바로 찾아낼 수 있음.
 
-- **빌드가 `Cannot find module './xxx.js'` 같은 에러로 실패하면**: `.next` 캐시가 깨진 경우가 많음 (원인 불명, Windows 파일시스템 관련 추정). `rm -rf .next` 후 재시도.
+- **빌드가 `Cannot find module './xxx.js'` 같은 에러로 실패하면**: `.next` 캐시가 깨진 경우가 많음 (원인 불명, Windows 파일시스템 관련 추정). `rm -rf .next` 후 재시도. 방금 `rm -rf .next` 하고 새로 빌드했는데도 또 깨지는 경우도 있었음 — 그럴 땐 그냥 한 번 더 `rm -rf .next` + 재빌드하면 통과됨.
+
+- **`npm run dev`를 백그라운드로 띄우고 PID로 `taskkill` 해도 포트가 안 풀릴 때가 있음**: Windows에서 `npm run dev &`로 띄운 프로세스를 종료해도 자식 프로세스가 남아 포트(3000)를 계속 점유하는 경우 있었음 — 다음 `npm run dev`가 "Port 3000 is in use"로 3001로 자동 전환됨. 개발 서버 껐다고 생각했으면 `netstat -ano | grep :3000` 으로 실제로 안 떠 있는지 확인할 것.
 
 ## PWA / Service Worker 관련
 
@@ -167,3 +174,6 @@ npm run lint       # 린트
 - **결제자/수취인 등 사람 표시는 `PersonAvatar` 사용**: 이모지나 이니셜을 직접 하드코딩하지 말고 `components/PersonAvatar.tsx` 사용 — `avatar_url` 있으면 사진, 없으면 이름 첫 글자로 자동 fallback.
 
 - **아이콘은 이모지 대신 `lucide-react`**: 메뉴/버튼/빈 상태 아이콘 등 새로 추가할 때 이모지 쓰지 말고 `lucide-react`에서 가져다 쓰기 (`import { Wallet } from 'lucide-react'`). 앱 전체가 이 라이브러리로 통일되어 있음.
+
+- **하단 네비(`components/BottomNav.tsx`)는 가운데 FAB 없이 5개 탭 균등폭 구조**: 원래 4탭 + 가운데 `+` FAB이었는데, 탭이 하나 늘면서(자산관리 추가) 자리가 없어 FAB을 없애고 `/expenses/add`로 가는 `+` 버튼은 가계부 페이지(`ExpensesClient.tsx`) 전용 `fixed` 버튼으로 옮김. 탭이 더 늘어나도 이 방식(전역 FAB 대신 필요한 페이지에 페이지 전용 FAB) 유지. 탭 순서는 **가계부 → 고정비 → 자산 → 통계 → 설정**.
+- **리스트 항목의 수정/삭제는 연필/휴지통 아이콘 버튼 쌍으로 통일**: `w-7 h-7 rounded-lg` 크기에 수정은 `hover:bg-gray-100`, 삭제는 `hover:bg-red-50 hover:text-red-500` 스타일 (자산관리 리스트가 기준, 가계부/고정비 리스트도 동일하게 맞춤). 가계부 리스트는 예전엔 행 전체를 눌러도 수정 페이지로 이동했는데, 수정 버튼이 따로 생기면서 행 클릭 이동은 제거함 — 수정은 항상 연필 버튼으로만.

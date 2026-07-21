@@ -7,7 +7,7 @@ import CategoryBadge from '@/components/CategoryBadge'
 import PersonAvatar from '@/components/PersonAvatar'
 import { Dialog, useConfirm } from '@/components/Dialog'
 import { EntryListSkeleton } from '@/components/Skeleton'
-import { Wallet, PiggyBank, Receipt, X } from 'lucide-react'
+import { Wallet, PiggyBank, Receipt, Pencil, Trash2 } from 'lucide-react'
 import type { Expense, Income, Profile } from '@/types'
 
 type EntryType = 'expense' | 'income'
@@ -240,8 +240,7 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
                   return (
                     <div
                       key={entry.id}
-                      onClick={handleRowClick}
-                      className={`flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-gray-50 dark:active:bg-gray-800 ${idx !== items.length - 1 ? 'border-b border-gray-50 dark:border-gray-800' : ''} ${deletingId === entry.id ? 'opacity-50' : ''}`}
+                      className={`flex items-center gap-3 px-4 py-3 ${idx !== items.length - 1 ? 'border-b border-gray-50 dark:border-gray-800' : ''} ${deletingId === entry.id ? 'opacity-50' : ''}`}
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
@@ -263,16 +262,23 @@ export default function ExpenseList({ currentUserId, year, month, onDeleted }: P
                         )}
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
                         <span className={`text-sm font-semibold ${isIncome ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-gray-50'}`}>
                           {isIncome ? '+' : '-'}{entry.amount.toLocaleString('ko-KR')}원
                         </span>
                         <button
-                          onClick={(e) => { e.stopPropagation(); handleDelete(entry.id, entry._type) }}
-                          className="text-gray-300 dark:text-gray-600 hover:text-red-400 dark:hover:text-red-300 transition-colors p-1"
-                          aria-label="삭제"
+                          onClick={handleRowClick}
+                          aria-label="수정"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                         >
-                          <X className="w-3.5 h-3.5" strokeWidth={2.5} />
+                          <Pencil className="w-3.5 h-3.5" strokeWidth={2} />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDelete(entry.id, entry._type) }}
+                          aria-label="삭제"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 dark:text-gray-500 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
                         </button>
                       </div>
                     </div>
