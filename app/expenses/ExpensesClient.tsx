@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
 import ExpenseList from '@/components/ExpenseList'
+import YearMonthPicker from '@/components/YearMonthPicker'
 import { Spinner } from '@/components/Skeleton'
 import { Dialog, useConfirm } from '@/components/Dialog'
 import { ChevronLeft, ChevronRight, Repeat, Download, FileSpreadsheet } from 'lucide-react'
@@ -24,6 +25,7 @@ export default function ExpensesClient({ currentUserId }: Props) {
   const [refreshKey, setRefreshKey] = useState(0)
   const [exporting, setExporting] = useState(false)
   const [sheetExporting, setSheetExporting] = useState(false)
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   const fetchSummary = useCallback(async () => {
     const supabase = createClient()
@@ -133,6 +135,13 @@ export default function ExpensesClient({ currentUserId }: Props) {
   return (
     <div className="flex flex-col h-full">
       <Dialog {...dialogProps} />
+      <YearMonthPicker
+        isOpen={pickerOpen}
+        year={year}
+        month={month}
+        onClose={() => setPickerOpen(false)}
+        onSelect={(y, m) => { setYear(y); if (m) setMonth(m); setPickerOpen(false) }}
+      />
       <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-hide">
       {/* 헤더 */}
       <header className="sticky top-0 z-10 bg-white dark:bg-gray-900 px-5 pt-[calc(3rem+env(safe-area-inset-top))] pb-5 shadow-[0_1px_0_0_#F0F0F0]">
@@ -156,7 +165,12 @@ export default function ExpensesClient({ currentUserId }: Props) {
             >
               <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
             </button>
-            <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">{year}년 {month}월</span>
+            <button
+              onClick={() => setPickerOpen(true)}
+              className="text-sm font-semibold text-gray-500 dark:text-gray-400 px-2 py-1 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            >
+              {year}년 {month}월
+            </button>
             <button
               onClick={nextMonth}
               disabled={isCurrentMonth}

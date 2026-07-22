@@ -77,6 +77,8 @@ npm run lint       # 린트
 - **UPDATE 정책을 등록자 본인(`auth.uid() = paid_by`)으로 좁히면 배우자가 수정/삭제 못함**: "우리 둘만 쓰는 앱"이라도 UPDATE 정책을 등록자 개인으로 제한하면 상대방이 수정·소프트삭제 버튼을 눌러도 RLS에 막혀 조용히 실패함(에러 없이 0행 업데이트). expenses/incomes처럼 부부가 공동으로 관리해야 하는 데이터는 `USING (auth.role() = 'authenticated') WITH CHECK (true)`로 두고, "내 것만 수정 가능" 제약은 애초에 걸지 않기. (`008_shared_edit_delete.sql` 참고)
 
 - **`assets` 테이블은 소프트 삭제 대신 하드 삭제**: expenses/incomes는 "지출 로그"라 실수 복구용 `deleted_at`이 있지만, `assets`(통장/적금/주식)는 "현재 잔액 상태"를 유지하는 테이블이라 로그가 아님 → 삭제는 그냥 `DELETE` (`assets_delete` 정책 참고, `009_assets.sql`). 새 테이블 만들 때 "로그성 데이터인지 상태성 데이터인지"에 따라 소프트/하드 삭제를 구분할 것.
+
+- **"유형"이 필요한 데이터는 처음부터 CHECK 제약 대신 관리 가능한 테이블로 분리**: `assets.type`을 `bank`/`savings`/`stock` CHECK 제약으로 시작했다가, 사용자가 유형을 직접 추가하고 싶어해서 나중에 `asset_categories`(name, color, sort_order, is_active) 테이블 + FK로 마이그레이션함(`010_asset_categories.sql`). `categories`/`income_categories`와 완전히 동일한 모양·RLS 정책(조회/추가/수정은 인증된 유저 전체 허용, 삭제 없이 `is_active` 토글만)이라 `app/settings/categories/CategoriesClient.tsx`에 탭 하나 추가하는 것만으로 관리 UI가 재사용됨. 앞으로 "유형" 개념이 새로 생기면 처음부터 이 패턴(고정 CHECK 아님) 사용.
 - **`updated_at`은 DB가 자동 갱신 안 해줌**: `assets.updated_at`은 `DEFAULT now()`라 INSERT 시엔 채워지지만, UPDATE 트리거가 없어서 수정할 때마다 클라이언트 코드에서 직접 `updated_at: new Date().toISOString()`을 payload에 넣어줘야 함. 트리거 안 만들었으면 당연히 안 바뀐다는 것 잊지 말기.
 
 ## Next.js / 데이터 패칭 관련
@@ -155,9 +157,15 @@ npm run lint       # 린트
 
 - **`npm run dev`를 백그라운드로 띄우고 PID로 `taskkill` 해도 포트가 안 풀릴 때가 있음**: Windows에서 `npm run dev &`로 띄운 프로세스를 종료해도 자식 프로세스가 남아 포트(3000)를 계속 점유하는 경우 있었음 — 다음 `npm run dev`가 "Port 3000 is in use"로 3001로 자동 전환됨. 개발 서버 껐다고 생각했으면 `netstat -ano | grep :3000` 으로 실제로 안 떠 있는지 확인할 것.
 
+- **UI 변경 후 Chrome 브라우저 자동화로 시각 검증하지 않기**: 사용자가 직접 폰/브라우저로 확인함 (Chrome 자동화 검증이 느려서 원치 않음). 코드 수정 후에는 `npm run build`/`npm run lint`까지만 확인하고, 실제 화면 확인은 사용자에게 맡길 것.
+
 ## PWA / Service Worker 관련
 
-- **PWA 아이콘 파일 필수**: `public/icons/icon-192.png`, `public/icons/icon-512.png` 파일이 없으면 404 에러 발생. manifest.json에서 참조하는 아이콘 파일은 반드시 실제로 존재해야 함.
+- **PWA 아이콘 파일 필수**: `public/icons/icon-192.png`, `icon-512.png`, `apple-touch-icon.png`(아이폰 홈 화면용, `layout.tsx`의 `metadata.icons.apple`에서 참조) 파일이 없으면 404 에러 발생. manifest.json/layout.tsx에서 참조하는 아이콘 파일은 반드시 실제로 존재해야 함 — `apple-touch-icon.png`는 한동안 코드에서 참조만 하고 실제 파일이 없던 적 있었음.
+
+- **아이콘 파일을 교체해도 이미 홈 화면에 설치된 앱은 자동으로 안 바뀜**: PWA 아이콘은 설치 시점에 기기에 캐시됨. 새 아이콘을 반영하려면 기존 홈 화면 아이콘을 삭제하고 다시 추가해야 함 — 배포만으로는 갱신 안 됨.
+
+- **아이콘류를 코드로 생성할 땐 `sharp` 사용 가능**: `node_modules`에 이미 설치돼 있음(Next.js 이미지 최적화 의존성). SVG 문자열을 만들어 `sharp(Buffer.from(svg)).resize(size).png().toFile(path)`로 래스터화하면 별도 디자인 툴 없이 아이콘 생성 가능. 로그인 페이지 하트 배지와 동일한 아이콘을 만들 때 lucide `Heart`의 실제 path data(`node_modules/lucide-react/dist/esm/icons/heart.mjs`)를 그대로 가져다 씀.
 
 - **Service Worker에서 chrome-extension URL 필터링**: `fetch` 이벤트 핸들러에서 `http`/`https`가 아닌 스킴(chrome-extension 등)을 캐싱하려 하면 TypeError 발생. fetch 핸들러 최상단에 `if (!event.request.url.startsWith('http')) return` 추가 필수.
 
@@ -177,4 +185,5 @@ npm run lint       # 린트
 
 - **하단 네비(`components/BottomNav.tsx`)는 가운데 FAB 없이 5개 탭 균등폭 구조**: 원래 4탭 + 가운데 `+` FAB이었는데, 탭이 하나 늘면서(자산관리 추가) 자리가 없어 FAB을 없앰. 탭 순서는 **가계부 → 고정비 → 자산 → 통계 → 설정**.
 - **각 화면 상단 헤더는 "제목 + 오른쪽 `+ 추가` 버튼" 한 줄로 통일**: 가계부/고정비/자산관리 전부 동일한 패턴(`text-lg font-bold` 제목 + `text-sm text-blue-500 ... bg-blue-50` 스타일의 `+ 추가` 버튼). 가계부는 한때 우하단 `fixed` FAB으로 추가 버튼을 따로 뒀었지만, 다른 화면과의 일관성을 위해 제거하고 헤더 버튼 하나로 통일함 — 새 목록형 화면 추가 시 이 패턴 유지.
+- **연/월 선택은 `components/YearMonthPicker.tsx` 재사용**: 가계부/통계 헤더의 "‹ 2026년 7월 ›" 가운데 텍스트를 탭하면 뜨는 바텀시트형 모달 — prev/next 화살표를 여러 번 눌러 1년 전으로 이동하는 대신, 연도를 넘기면서 원하는 월을 바로 탭해서 이동 가능. `month` prop을 생략하면 연도만 고르는 모드로 동작(통계의 "연별" 보기에서 사용). 새로운 날짜 네비게이션이 필요하면 이 컴포넌트부터 재사용할 것.
 - **리스트 항목의 수정/삭제는 연필/휴지통 아이콘 버튼 쌍으로 통일**: `w-7 h-7 rounded-lg` 크기에 수정은 `hover:bg-gray-100`, 삭제는 `hover:bg-red-50 hover:text-red-500` 스타일 (자산관리 리스트가 기준, 가계부/고정비 리스트도 동일하게 맞춤). 가계부 리스트는 예전엔 행 전체를 눌러도 수정 페이지로 이동했는데, 수정 버튼이 따로 생기면서 행 클릭 이동은 제거함 — 수정은 항상 연필 버튼으로만.

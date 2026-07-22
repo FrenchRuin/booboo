@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
 import PersonAvatar from '@/components/PersonAvatar'
 import CategoryBadge from '@/components/CategoryBadge'
+import YearMonthPicker from '@/components/YearMonthPicker'
 import { ChevronLeft, ChevronRight, BarChart3, CalendarDays } from 'lucide-react'
 import { StatsContentSkeleton } from '@/components/Skeleton'
 import type { Category, IncomeCategory, Profile, Expense, Income } from '@/types'
@@ -44,6 +45,7 @@ export default function StatsClient({ currentUserId }: Props) {
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
 
   const [loading, setLoading] = useState(true)
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   const fetchMonthly = useCallback(async () => {
     setLoading(true)
@@ -164,6 +166,13 @@ export default function StatsClient({ currentUserId }: Props) {
 
   return (
     <div className="flex flex-col h-full">
+      <YearMonthPicker
+        isOpen={pickerOpen}
+        year={year}
+        month={viewMode === 'yearly' ? undefined : month}
+        onClose={() => setPickerOpen(false)}
+        onSelect={(y, m) => { setYear(y); if (m) setMonth(m); setPickerOpen(false) }}
+      />
       <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-hide">
       <header className="sticky top-0 z-10 bg-white dark:bg-gray-900 px-5 pt-[calc(3rem+env(safe-area-inset-top))] pb-5 shadow-[0_1px_0_0_#F0F0F0]">
         <div className="max-w-lg mx-auto">
@@ -196,9 +205,12 @@ export default function StatsClient({ currentUserId }: Props) {
             >
               <ChevronLeft className="w-5 h-5" strokeWidth={2.5} />
             </button>
-            <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">
+            <button
+              onClick={() => setPickerOpen(true)}
+              className="text-sm font-semibold text-gray-500 dark:text-gray-400 px-2 py-1 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            >
               {viewMode === 'yearly' ? `${year}년` : `${year}년 ${month}월`}
-            </span>
+            </button>
             <button
               onClick={() => {
                 if (viewMode === 'yearly') {
