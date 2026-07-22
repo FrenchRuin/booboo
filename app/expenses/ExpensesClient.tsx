@@ -7,7 +7,7 @@ import BottomNav from '@/components/BottomNav'
 import ExpenseList from '@/components/ExpenseList'
 import { Spinner } from '@/components/Skeleton'
 import { Dialog, useConfirm } from '@/components/Dialog'
-import { ChevronLeft, ChevronRight, Repeat, Download, FileSpreadsheet, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Repeat, Download, FileSpreadsheet } from 'lucide-react'
 import type { Expense, Income } from '@/types'
 
 type Props = {
@@ -137,6 +137,17 @@ export default function ExpensesClient({ currentUserId }: Props) {
       {/* 헤더 */}
       <header className="sticky top-0 z-10 bg-white dark:bg-gray-900 px-5 pt-[calc(3rem+env(safe-area-inset-top))] pb-5 shadow-[0_1px_0_0_#F0F0F0]">
         <div className="max-w-lg mx-auto">
+          {/* 제목 / 추가 */}
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-lg font-bold text-gray-900 dark:text-gray-50">가계부</h1>
+            <button
+              onClick={() => router.push('/expenses/add')}
+              className="text-sm text-blue-500 dark:text-blue-400 font-medium px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"
+            >
+              + 추가
+            </button>
+          </div>
+
           {/* 월 선택 */}
           <div className="flex items-center justify-between mb-5">
             <button
@@ -230,14 +241,6 @@ export default function ExpensesClient({ currentUserId }: Props) {
         />
       </div>
       </main>
-
-      <button
-        onClick={() => router.push('/expenses/add')}
-        aria-label="내역 추가"
-        className="fixed right-5 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-20 w-14 h-14 bg-blue-500 hover:bg-blue-600 active:scale-95 text-white rounded-full shadow-lg shadow-blue-200 dark:shadow-blue-950/40 flex items-center justify-center transition-all"
-      >
-        <Plus className="w-7 h-7" strokeWidth={2.5} />
-      </button>
 
       <BottomNav />
     </div>

@@ -299,31 +299,37 @@ export default function AssetsClient({ currentUserId }: Props) {
       <Dialog {...dialogProps} />
       <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-hide">
         <header className="sticky top-0 z-10 bg-white dark:bg-gray-900 px-5 pt-[calc(3rem+env(safe-area-inset-top))] pb-4 shadow-[0_1px_0_0_#F0F0F0]">
-          <div className="max-w-lg mx-auto flex items-center justify-between">
-            <h1 className="text-lg font-bold text-gray-900 dark:text-gray-50">자산관리</h1>
-            <button
-              onClick={startAdd}
-              className="text-sm text-blue-500 dark:text-blue-400 font-medium px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"
-            >
-              {showAddForm ? '취소' : '+ 추가'}
-            </button>
+          <div className="max-w-lg mx-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-lg font-bold text-gray-900 dark:text-gray-50">자산관리</h1>
+              <button
+                onClick={startAdd}
+                className="text-sm text-blue-500 dark:text-blue-400 font-medium px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"
+              >
+                {showAddForm ? '취소' : '+ 추가'}
+              </button>
+            </div>
+
+            {!loading && assets.length > 0 && (
+              <div>
+                <p className="text-xs text-gray-400 dark:text-gray-500 font-medium mb-1">총자산</p>
+                <p className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-50">
+                  {total.toLocaleString('ko-KR')}<span className="text-lg font-semibold ml-1">원</span>
+                </p>
+                {total > 0 && (
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{formatKoreanAmount(total)}</p>
+                )}
+              </div>
+            )}
           </div>
         </header>
 
         <div className="px-4 pt-5 pb-[calc(8rem+env(safe-area-inset-bottom))] max-w-lg mx-auto w-full space-y-4">
-          {/* 총자산 요약 */}
+          {/* 유형별 / 인물별 요약 */}
           {!loading && assets.length > 0 && (
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-4">
-              <p className="text-xs text-gray-400 dark:text-gray-500 font-medium mb-1">총자산</p>
-              <p className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-50">
-                {total.toLocaleString('ko-KR')}<span className="text-lg font-semibold ml-1">원</span>
-              </p>
-              {total > 0 && (
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 mb-3">{formatKoreanAmount(total)}</p>
-              )}
-
               {categoriesWithAssets.length > 0 && (
-                <div className="grid grid-cols-2 gap-2 pt-3 mt-3 border-t border-gray-100 dark:border-gray-800">
+                <div className="grid grid-cols-2 gap-2 mb-3">
                   {categoriesWithAssets.map((c) => (
                     <div key={c.id} className="min-w-0">
                       <div className="flex items-center gap-1.5 mb-1">
@@ -338,7 +344,7 @@ export default function AssetsClient({ currentUserId }: Props) {
                 </div>
               )}
 
-              <div className={`grid ${partner ? 'grid-cols-2' : 'grid-cols-1'} gap-2 pt-3 mt-3 border-t border-gray-100 dark:border-gray-800`}>
+              <div className={`grid ${partner ? 'grid-cols-2' : 'grid-cols-1'} gap-2 ${categoriesWithAssets.length > 0 ? 'pt-3 border-t border-gray-100 dark:border-gray-800' : ''}`}>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 mb-1">
                     <PersonAvatar profile={me} size={16} />
