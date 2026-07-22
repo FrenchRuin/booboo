@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
 import PersonAvatar from '@/components/PersonAvatar'
@@ -8,8 +9,8 @@ import CategoryBadge from '@/components/CategoryBadge'
 import { Dialog, useConfirm } from '@/components/Dialog'
 import { CardListSkeleton, Spinner } from '@/components/Skeleton'
 import { formatAmount, formatKoreanAmount } from '@/lib/format'
-import { Landmark, PiggyBank, TrendingUp, Pencil, Trash2, type LucideIcon } from 'lucide-react'
-import type { Asset, AssetType, Profile } from '@/types'
+import { Landmark, Pencil, Trash2 } from 'lucide-react'
+import type { Asset, AssetCategory, Profile } from '@/types'
 
 type Props = {
   currentUserId: string
@@ -17,40 +18,40 @@ type Props = {
 
 type FormState = {
   name: string
-  type: AssetType
+  categoryId: string
   amount: string
   ownerId: string
   memo: string
 }
 
-const ASSET_TYPES: { value: AssetType; label: string; icon: LucideIcon; color: string }[] = [
-  { value: 'bank', label: '통장', icon: Landmark, color: '#5B9BFF' },
-  { value: 'savings', label: '적금', icon: PiggyBank, color: '#34D399' },
-  { value: 'stock', label: '주식', icon: TrendingUp, color: '#C084FC' },
-]
-
 export default function AssetsClient({ currentUserId }: Props) {
   const { confirm, dialogProps } = useConfirm()
 
   const [assets, setAssets] = useState<Asset[]>([])
+  const [categories, setCategories] = useState<AssetCategory[]>([])
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [form, setForm] = useState<FormState>({ name: '', type: 'bank', amount: '', ownerId: currentUserId, memo: '' })
+  const [form, setForm] = useState<FormState>({ name: '', categoryId: '', amount: '', ownerId: currentUserId, memo: '' })
   const [saving, setSaving] = useState(false)
+
+  const [personFilter, setPersonFilter] = useState<'all' | string>('all')
+  const [categoryFilterId, setCategoryFilterId] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
-    const [{ data: assetData }, { data: profileData }] = await Promise.all([
+    const [{ data: assetData }, { data: profileData }, { data: categoryData }] = await Promise.all([
       supabase.from('assets').select('*').order('created_at'),
       supabase.from('profiles').select('*'),
+      supabase.from('asset_categories').select('*').order('sort_order'),
     ])
     setAssets((assetData as Asset[]) ?? [])
     if (profileData) setProfiles(profileData)
+    if (categoryData) setCategories(categoryData)
     setLoading(false)
   }, [])
 
@@ -59,23 +60,45 @@ export default function AssetsClient({ currentUserId }: Props) {
   const me = profiles.find((p) => p.id === currentUserId)
   const partner = profiles.find((p) => p.id !== currentUserId)
   const ownerOf = (asset: Asset) => profiles.find((p) => p.id === asset.owner_id)
-  const typeInfoOf = (type: AssetType) => ASSET_TYPES.find((t) => t.value === type)!
+  const categoryOf = (categoryId: string) => categories.find((c) => c.id === categoryId)
 
   const total = assets.reduce((sum, a) => sum + a.amount, 0)
-  const subtotal = (type: AssetType) => assets.filter((a) => a.type === type).reduce((sum, a) => sum + a.amount, 0)
+  const subtotal = (categoryId: string) => assets.filter((a) => a.category_id === categoryId).reduce((sum, a) => sum + a.amount, 0)
   const totalOf = (ownerId: string) => assets.filter((a) => a.owner_id === ownerId).reduce((sum, a) => sum + a.amount, 0)
 
   const orderedAssets = [...assets].sort((a, b) => {
-    const ta = ASSET_TYPES.findIndex((t) => t.value === a.type)
-    const tb = ASSET_TYPES.findIndex((t) => t.value === b.type)
-    if (ta !== tb) return ta - tb
+    const sa = categoryOf(a.category_id)?.sort_order ?? 0
+    const sb = categoryOf(b.category_id)?.sort_order ?? 0
+    if (sa !== sb) return sa - sb
     return a.created_at.localeCompare(b.created_at)
+  })
+
+  const personTabs = [
+    { id: 'all' as const, label: '전체' },
+    { id: currentUserId, label: me?.display_name ?? '나' },
+    ...(partner ? [{ id: partner.id, label: partner.display_name }] : []),
+  ]
+
+  const handlePersonFilter = (id: string) => {
+    setPersonFilter(id)
+    setCategoryFilterId(null)
+  }
+
+  // 사람 필터가 적용된 자산에 실제 등장하는 유형만 칩으로 노출
+  const categoryChips = categories.filter((c) =>
+    assets.some((a) => a.category_id === c.id && (personFilter === 'all' || a.owner_id === personFilter))
+  )
+
+  const filteredAssets = orderedAssets.filter((a) => {
+    if (personFilter !== 'all' && a.owner_id !== personFilter) return false
+    if (categoryFilterId && a.category_id !== categoryFilterId) return false
+    return true
   })
 
   const resetForm = () => {
     setShowAddForm(false)
     setEditingId(null)
-    setForm({ name: '', type: 'bank', amount: '', ownerId: currentUserId, memo: '' })
+    setForm({ name: '', categoryId: categories.find((c) => c.is_active)?.id ?? '', amount: '', ownerId: currentUserId, memo: '' })
     setError(null)
   }
 
@@ -90,7 +113,7 @@ export default function AssetsClient({ currentUserId }: Props) {
     setEditingId(asset.id)
     setForm({
       name: asset.name,
-      type: asset.type,
+      categoryId: asset.category_id,
       amount: asset.amount.toLocaleString('ko-KR'),
       ownerId: asset.owner_id,
       memo: asset.memo ?? '',
@@ -100,6 +123,7 @@ export default function AssetsClient({ currentUserId }: Props) {
 
   const handleSave = async () => {
     if (!form.name.trim()) { setError('이름을 입력해주세요.'); return }
+    if (!form.categoryId) { setError('유형을 선택해주세요.'); return }
     const parsedAmount = parseInt(form.amount.replace(/,/g, ''), 10)
     if (isNaN(parsedAmount) || parsedAmount < 0) { setError('올바른 금액을 입력해주세요.'); return }
 
@@ -108,7 +132,7 @@ export default function AssetsClient({ currentUserId }: Props) {
     const supabase = createClient()
     const payload = {
       name: form.name.trim(),
-      type: form.type,
+      category_id: form.categoryId,
       amount: parsedAmount,
       owner_id: form.ownerId,
       memo: form.memo.trim() || null,
@@ -137,6 +161,8 @@ export default function AssetsClient({ currentUserId }: Props) {
     fetchData()
   }
 
+  const selectableCategories = categories.filter((c) => c.is_active || c.id === form.categoryId)
+
   const renderForm = (submitLabel: string) => (
     <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 space-y-4">
       {/* 이름 */}
@@ -156,19 +182,31 @@ export default function AssetsClient({ currentUserId }: Props) {
       {/* 유형 */}
       <div>
         <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">유형</label>
-        <div className="flex bg-white dark:bg-gray-900 rounded-xl p-1 border border-gray-200 dark:border-gray-700">
-          {ASSET_TYPES.map((t) => (
-            <button
-              key={t.value}
-              type="button"
-              onClick={() => setForm((f) => ({ ...f, type: t.value }))}
-              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
-                form.type === t.value ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900' : 'text-gray-500 dark:text-gray-400'
-              }`}
-            >
-              <t.icon className="w-3.5 h-3.5" /> {t.label}
-            </button>
-          ))}
+        <div className="flex flex-wrap gap-2">
+          {selectableCategories.map((c) => {
+            const selected = form.categoryId === c.id
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, categoryId: c.id }))}
+                style={{
+                  backgroundColor: c.color + (selected ? '33' : '18'),
+                  color: c.color,
+                  borderColor: selected ? c.color : 'transparent',
+                }}
+                className="px-3 py-1.5 rounded-full border-2 text-sm font-medium transition-colors"
+              >
+                {c.name}
+              </button>
+            )
+          })}
+          <Link
+            href="/settings/categories?type=asset"
+            className="px-3 py-1.5 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          >
+            + 유형 추가
+          </Link>
         </div>
       </div>
 
@@ -201,9 +239,7 @@ export default function AssetsClient({ currentUserId }: Props) {
 
       {/* 금액 */}
       <div>
-        <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">
-          {form.type === 'stock' ? '평가금액' : '잔액'}
-        </label>
+        <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 block">금액</label>
         <div className="relative">
           <input
             type="text"
@@ -256,6 +292,8 @@ export default function AssetsClient({ currentUserId }: Props) {
     </div>
   )
 
+  const categoriesWithAssets = categories.filter((c) => subtotal(c.id) > 0)
+
   return (
     <div className="flex flex-col h-full">
       <Dialog {...dialogProps} />
@@ -277,36 +315,48 @@ export default function AssetsClient({ currentUserId }: Props) {
           {!loading && assets.length > 0 && (
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-4">
               <p className="text-xs text-gray-400 dark:text-gray-500 font-medium mb-1">총자산</p>
-              <p className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-50 mb-3">
+              <p className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-50">
                 {total.toLocaleString('ko-KR')}<span className="text-lg font-semibold ml-1">원</span>
               </p>
-              <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide">
-                {ASSET_TYPES.map((t) => (
-                  <div key={t.value} className="flex items-center gap-2 flex-shrink-0">
-                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: t.color }} />
-                    <span className="text-xs text-gray-400 dark:text-gray-500">{t.label}</span>
-                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                      {subtotal(t.value).toLocaleString('ko-KR')}원
-                    </span>
-                  </div>
-                ))}
-              </div>
+              {total > 0 && (
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 mb-3">{formatKoreanAmount(total)}</p>
+              )}
 
-              <div className="flex items-center gap-4 pt-3 mt-3 border-t border-gray-100 dark:border-gray-800 overflow-x-auto scrollbar-hide">
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <PersonAvatar profile={me} size={16} />
-                  <span className="text-xs text-gray-400 dark:text-gray-500">{me?.display_name ?? '나'}</span>
-                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+              {categoriesWithAssets.length > 0 && (
+                <div className="grid grid-cols-2 gap-2 pt-3 mt-3 border-t border-gray-100 dark:border-gray-800">
+                  {categoriesWithAssets.map((c) => (
+                    <div key={c.id} className="min-w-0">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: c.color }} />
+                        <span className="text-xs text-gray-400 dark:text-gray-500 truncate">{c.name}</span>
+                      </div>
+                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 truncate">
+                        {subtotal(c.id).toLocaleString('ko-KR')}원
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className={`grid ${partner ? 'grid-cols-2' : 'grid-cols-1'} gap-2 pt-3 mt-3 border-t border-gray-100 dark:border-gray-800`}>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <PersonAvatar profile={me} size={16} />
+                    <span className="text-xs text-gray-400 dark:text-gray-500 truncate">{me?.display_name ?? '나'}</span>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 truncate">
                     {totalOf(currentUserId).toLocaleString('ko-KR')}원
-                  </span>
+                  </p>
                 </div>
                 {partner && (
-                  <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <PersonAvatar profile={partner} size={16} />
-                    <span className="text-xs text-gray-400 dark:text-gray-500">{partner.display_name}</span>
-                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <PersonAvatar profile={partner} size={16} />
+                      <span className="text-xs text-gray-400 dark:text-gray-500 truncate">{partner.display_name}</span>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 truncate">
                       {totalOf(partner.id).toLocaleString('ko-KR')}원
-                    </span>
+                    </p>
                   </div>
                 )}
               </div>
@@ -315,6 +365,53 @@ export default function AssetsClient({ currentUserId }: Props) {
 
           {/* 추가 폼 */}
           {showAddForm && renderForm('추가하기')}
+
+          {/* 필터 */}
+          {!loading && assets.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+                {personTabs.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => handlePersonFilter(t.id)}
+                    className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      personFilter === t.id ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50 shadow-sm' : 'text-gray-500 dark:text-gray-400'
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              {categoryChips.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                  <button
+                    onClick={() => setCategoryFilterId(null)}
+                    className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                      categoryFilterId === null
+                        ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
+                        : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400'
+                    }`}
+                  >
+                    전체
+                  </button>
+                  {categoryChips.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => setCategoryFilterId(categoryFilterId === c.id ? null : c.id)}
+                      className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                        categoryFilterId === c.id
+                          ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
+                          : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300'
+                      }`}
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* 목록 */}
           {loading ? (
@@ -330,11 +427,16 @@ export default function AssetsClient({ currentUserId }: Props) {
                 첫 자산 추가하기
               </button>
             </div>
+          ) : filteredAssets.length === 0 ? (
+            <div className="text-center py-16 text-gray-400 dark:text-gray-500">
+              <Landmark className="w-10 h-10 mx-auto mb-2" strokeWidth={1.5} />
+              <p className="text-sm">해당하는 자산이 없어요</p>
+            </div>
           ) : (
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-              {orderedAssets.map((asset, idx) => {
-                const isLast = idx === orderedAssets.length - 1
-                const t = typeInfoOf(asset.type)
+              {filteredAssets.map((asset, idx) => {
+                const isLast = idx === filteredAssets.length - 1
+                const category = categoryOf(asset.category_id)
                 const owner = ownerOf(asset)
                 const isMine = asset.owner_id === currentUserId
                 const ownerName = owner?.display_name ?? (isMine ? '나' : '파트너')
@@ -351,7 +453,7 @@ export default function AssetsClient({ currentUserId }: Props) {
                   <div key={asset.id} className={`flex items-center gap-3 px-4 py-3 ${!isLast ? 'border-b border-gray-50 dark:border-gray-800' : ''}`}>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <CategoryBadge category={{ name: t.label, color: t.color }} size="sm" />
+                        <CategoryBadge category={{ name: category?.name ?? '기타', color: category?.color ?? '#B0B0B0' }} size="sm" />
                         <span className={`flex items-center gap-1 pl-0.5 pr-1.5 py-0.5 rounded-full flex-shrink-0 ${isMine ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400' : 'bg-blue-50 dark:bg-blue-500/10 text-blue-500 dark:text-blue-400'}`}>
                           <PersonAvatar profile={owner} size={14} />
                           <span className="text-xs">{ownerName}</span>

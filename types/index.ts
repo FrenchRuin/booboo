@@ -59,12 +59,18 @@ export type Income = {
   income_categories?: IncomeCategory
 }
 
-export type AssetType = 'bank' | 'savings' | 'stock'
+export type AssetCategory = {
+  id: string
+  name: string
+  color: string
+  sort_order: number
+  is_active: boolean
+}
 
 export type Asset = {
   id: string
   name: string
-  type: AssetType
+  category_id: string
   amount: number
   owner_id: string
   memo: string | null

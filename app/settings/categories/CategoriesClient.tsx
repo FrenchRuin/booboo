@@ -1,16 +1,16 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { Dialog, useConfirm } from '@/components/Dialog'
 import CategoryBadge from '@/components/CategoryBadge'
 import { CardListSkeleton, Spinner } from '@/components/Skeleton'
-import { ChevronLeft, Wallet, PiggyBank, Palette } from 'lucide-react'
-import type { Category, IncomeCategory } from '@/types'
+import { ChevronLeft, Wallet, PiggyBank, Landmark, Palette, type LucideIcon } from 'lucide-react'
+import type { Category, IncomeCategory, AssetCategory } from '@/types'
 
-type CategoryType = 'expense' | 'income'
-type AnyCategory = Category | IncomeCategory
+type CategoryType = 'expense' | 'income' | 'asset'
+type AnyCategory = Category | IncomeCategory | AssetCategory
 
 const DEFAULT_COLOR = '#4ECDC4'
 const PRESET_COLORS = [
@@ -18,15 +18,26 @@ const PRESET_COLORS = [
   '#5B7FFF', '#9B7EDE', '#96CEB4', '#4CAF50', '#E91E63', '#B0B0B0',
 ]
 
+const TABS: { value: CategoryType; label: string; icon: LucideIcon }[] = [
+  { value: 'expense', label: '지출 유형', icon: Wallet },
+  { value: 'income', label: '소득 유형', icon: PiggyBank },
+  { value: 'asset', label: '자산 유형', icon: Landmark },
+]
+
 type FormState = { name: string; color: string }
 
-export default function CategoriesClient() {
+function CategoriesContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { confirm, dialogProps } = useConfirm()
 
-  const [type, setType] = useState<CategoryType>('expense')
+  const initialType = searchParams.get('type')
+  const [type, setType] = useState<CategoryType>(
+    initialType === 'income' || initialType === 'asset' ? initialType : 'expense'
+  )
   const [categories, setCategories] = useState<Category[]>([])
   const [incomeCategories, setIncomeCategories] = useState<IncomeCategory[]>([])
+  const [assetCategories, setAssetCategories] = useState<AssetCategory[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -38,19 +49,21 @@ export default function CategoriesClient() {
   const fetchData = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
-    const [{ data: catData }, { data: incCatData }] = await Promise.all([
+    const [{ data: catData }, { data: incCatData }, { data: assetCatData }] = await Promise.all([
       supabase.from('categories').select('*').order('sort_order'),
       supabase.from('income_categories').select('*').order('sort_order'),
+      supabase.from('asset_categories').select('*').order('sort_order'),
     ])
     if (catData) setCategories(catData)
     if (incCatData) setIncomeCategories(incCatData)
+    if (assetCatData) setAssetCategories(assetCatData)
     setLoading(false)
   }, [])
 
   useEffect(() => { fetchData() }, [fetchData])
 
-  const table = type === 'expense' ? 'categories' : 'income_categories'
-  const list = type === 'expense' ? categories : incomeCategories
+  const table = type === 'expense' ? 'categories' : type === 'income' ? 'income_categories' : 'asset_categories'
+  const list = type === 'expense' ? categories : type === 'income' ? incomeCategories : assetCategories
 
   const resetForm = () => {
     setShowAddForm(false)
@@ -123,7 +136,7 @@ export default function CategoriesClient() {
           autoFocus
           value={form.name}
           onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-          placeholder="예: 반려동물"
+          placeholder={type === 'asset' ? '예: 부동산' : '예: 반려동물'}
           maxLength={20}
           className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white dark:bg-gray-900"
         />
@@ -197,19 +210,19 @@ export default function CategoriesClient() {
       </header>
 
       <div className="px-4 pt-5 pb-[calc(6rem+env(safe-area-inset-bottom))] max-w-lg mx-auto w-full space-y-4">
-        {/* 지출 / 소득 탭 */}
+        {/* 지출 / 소득 / 자산 탭 */}
         <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
-          {(['expense', 'income'] as const).map((t) => (
+          {TABS.map((t) => (
             <button
-              key={t}
+              key={t.value}
               type="button"
-              onClick={() => { setType(t); resetForm() }}
+              onClick={() => { setType(t.value); resetForm() }}
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
-                type === t ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50 shadow-sm' : 'text-gray-500 dark:text-gray-400'
+                type === t.value ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-50 shadow-sm' : 'text-gray-500 dark:text-gray-400'
               }`}
             >
-              {t === 'expense' ? <Wallet className="w-4 h-4" /> : <PiggyBank className="w-4 h-4" />}
-              {t === 'expense' ? '지출 유형' : '소득 유형'}
+              <t.icon className="w-4 h-4" />
+              {t.label}
             </button>
           ))}
         </div>
@@ -281,5 +294,17 @@ export default function CategoriesClient() {
       </div>
       </main>
     </div>
+  )
+}
+
+export default function CategoriesClient() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-full">
+        <div className="w-6 h-6 border-2 border-gray-200 dark:border-gray-700 border-t-blue-500 rounded-full animate-spin" />
+      </div>
+    }>
+      <CategoriesContent />
+    </Suspense>
   )
 }
